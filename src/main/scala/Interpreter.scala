@@ -43,7 +43,7 @@ object Interpreter {
   
   val namedBuiltins: Map[String, HBLAny] = Map(
     // Values
-    "nil" -> Builtins.HBLNil,
+    "nil" -> HBLList(Builtins.quote, Builtins.HBLNil),
     // Macros
     "quote" -> Builtins.quote,
     "get-local" -> Builtins.getLocal,
@@ -172,6 +172,7 @@ object Interpreter {
             val relativeIndex = if offset == "" then 1 else offset.toInt
             HBLList(Builtins.getPrevLine, relativeIndex)
           }
+          case "this" => HBLList(Builtins.getThisLine)
           case namedBuiltins(builtin) => builtin
           case _ => throw TokenException(s"$atom")
         }
