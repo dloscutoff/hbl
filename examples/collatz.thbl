@@ -1,0 +1,8 @@
+'(cond (odd? arg1)
+  (inc (mul arg1 3))
+  (div arg1 2))
+
+'(cond (less? arg1 2)
+  '(1)
+  (cons arg1
+    (recur (prev arg1))))
