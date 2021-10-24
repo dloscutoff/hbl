@@ -114,7 +114,7 @@ object Interpreter {
   def loadGolfedProgram(parseTree: InternalNode): Unit = {
     val InternalNode(parsedLines, _, _) = parseTree
     for ((line, lineNumber) <- parsedLines.zipWithIndex) {
-      given context: Context = Context(lineNumber)
+      given Context = Context(lineNumber)
       programLines.append(eval(translateGolfed(line)))
     }
   }
@@ -122,7 +122,7 @@ object Interpreter {
   def loadExpandedProgram(parseTree: InternalNode): Unit = {
     val InternalNode(parsedLines, _, _) = parseTree
     for ((line, lineNumber) <- parsedLines.zipWithIndex) {
-      given context: Context = Context(lineNumber)
+      given Context = Context(lineNumber)
       programLines.append(eval(translateExpanded(line)))
     }
   }
@@ -183,7 +183,7 @@ object Interpreter {
     if (!programLines.isEmpty) {
       programLines.last match {
         case mainFn: HBLList => {
-          given context: Context = Context(programLines.length - 1, mainFn, argVals)
+          given Context = Context(programLines.length - 1, mainFn, argVals)
           println(eval(programLines.last))
         }
         case _ => println(programLines.last)
@@ -222,7 +222,7 @@ object Interpreter {
               // of the new arguments
               context.fn match {
                 case Some(currentFunc: HBLList) => {
-                  given newContext: Context = context.withNewLocals(evalEach(args)(using context))
+                  given Context = context.withNewLocals(evalEach(args)(using context))
                   eval(currentFunc)
                 }
                 case None => throw TopLevelException("Cannot use recur at top level, only within a function")
@@ -250,7 +250,7 @@ object Interpreter {
             case builtinFunction: HBLFunction => builtinFunction(argVals)
             // A list representing a user-defined function
             case userFunction: HBLList => {
-              given newContext: Context = Context(userFunction.lineNumber, Some(userFunction), argVals)
+              given Context = Context(userFunction.lineNumber, Some(userFunction), argVals)
               eval(userFunction)
             }
             // Any other value is not a callable value
@@ -273,13 +273,13 @@ object Interpreter {
     fn match {
       // A list representing a user-defined function
       case userFunction: HBLList if !userFunction.isEmpty => {
-        given newContext: Context = Context(userFunction.lineNumber, Some(userFunction), argVals)
+        given Context = Context(userFunction.lineNumber, Some(userFunction), argVals)
         eval(userFunction)
       }
       // A direct reference to a builtin function or a literal value
       // that's overloaded as a function
       case builtin => {
-        given newContext: Context = Context()
+        given Context = Context()
         // The arguments have already been evaluated, so quote each of them
         // to prevent them from being evaluated twice
         eval(HBLList((builtin +: quoteEach(argVals)).toVector))

@@ -247,7 +247,7 @@ object Builtins {
     println("Calling recur builtin!!")
     context.fn match {
       case Some(fn: HBLList) => {
-        given newContext: Context = context.withNewLocals(Interpreter.evalEach(args)(using context))
+        given Context = context.withNewLocals(Interpreter.evalEach(args)(using context))
         Interpreter.eval(fn)
       }
       case None => throw TopLevelException("Cannot use recur at top level, only within a function")
