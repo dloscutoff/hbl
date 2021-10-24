@@ -32,28 +32,12 @@ object Main {
     if (args.length >= 1) {
       val debug = false
       val filename = args.head
-      val extensionPattern = ".*\\.(\\w+)".r
-      val format = filename match {
-        case extensionPattern("hb") => FileFormat.Raw
-        case extensionPattern("hbl") => FileFormat.ASCII
-        case extensionPattern("thbl") => FileFormat.Thimble
-        case _ => FileFormat.ASCII  // TODO: How to handle unrecognized file format?
-      }
       try {
         val argVals = processArgs(args.tail)
         if (debug) {
           println(s"> Arguments: ${argVals.mkString(", ")}")
         }
-        val code = if (format == FileFormat.Raw) {
-          val inFile = Paths.get(filename)
-          val byteArray = Files.readAllBytes(inFile)
-          Parser.fromBytes(byteArray)
-        } else {
-          val inFile = Source.fromFile(filename)
-          try {
-            inFile.mkString
-          } finally inFile.close()
-        }
+        val (code, format) = readCodeFromFile(filename)
         format match {
           case FileFormat.Raw | FileFormat.ASCII => {
             val parseTree = Parser.parseGolfed(code)
@@ -115,5 +99,26 @@ object Main {
         case _ => throw ArgumentException(s"Incorrectly formatted expression in command-line argument: $commandLineArg")
       }
     }
+  }
+
+  def readCodeFromFile(filename: String): (String, FileFormat) = {
+    val extensionPattern = ".*\\.(\\w+)".r
+    val format = filename match {
+      case extensionPattern("hb") => FileFormat.Raw
+      case extensionPattern("hbl") => FileFormat.ASCII
+      case extensionPattern("thbl") => FileFormat.Thimble
+      case _ => FileFormat.ASCII  // TODO: How to handle unrecognized file format?
+    }
+    val code = if (format == FileFormat.Raw) {
+      val inFile = Paths.get(filename)
+      val byteArray = Files.readAllBytes(inFile)
+      Parser.fromBytes(byteArray)
+    } else {
+      val inFile = Source.fromFile(filename)
+      try {
+        inFile.mkString
+      } finally inFile.close()
+    }
+    (code, format)
   }
 }
