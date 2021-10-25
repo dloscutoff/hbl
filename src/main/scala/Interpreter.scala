@@ -48,6 +48,7 @@ object Interpreter {
     "quote" -> Builtins.quote,
     "get-local" -> Builtins.getLocal,
     "get-locals" -> Builtins.getLocals,
+    "count-locals" -> Builtins.countLocals,
     "get-prev" -> Builtins.getPrevLine,
     "get-this" -> Builtins.getThisLine,
     "cond" -> Builtins.cond,
@@ -168,6 +169,7 @@ object Interpreter {
           case intPattern() => BigInt(atom)
           case numberedArgPattern(argnum) => HBLList(Builtins.getLocal, BigInt(argnum))
           case "arglist" => HBLList(Builtins.getLocals)
+          case "argcount" => HBLList(Builtins.countLocals)
           case prevRefPattern(offset) => {
             val relativeIndex = if offset == "" then 1 else offset.toInt
             HBLList(Builtins.getPrevLine, relativeIndex)
