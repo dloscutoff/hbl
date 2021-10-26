@@ -30,7 +30,6 @@ class HBLList(vec: Vector[HBLAny], var lineNumber: Option[Int]) extends Seq[HBLA
   def this(vec: Vector[HBLAny]) = this(vec, None)
   def this(values: HBLAny*) = this(values.toVector)
   def this(range: NumericRange[BigInt]) = this(range.toVector)
-  //def this(iter: IterableOnce[HBLAny]) = this(iter.iterator.toVector)
   override def apply(i: Int): HBLAny = vec(i)
   override def iterator: Iterator[HBLAny] = vec.iterator
   override def length: Int = vec.length
@@ -180,6 +179,16 @@ object Builtins {
     }
   })
 
+  val countLocals = HBLFinalMacro("count-locals", (args: Seq[HBLAny], context: Context) => {
+    if (context.fn == None) {
+      throw TopLevelException("Cannot access args at top level, only within a function")
+    } else if (!args.isEmpty) {
+      throw ArgumentException("count-locals does not take any arguments")
+    } else {
+      BigInt(context.locals.length)
+    }
+  })
+
   val getThisLine = HBLFinalMacro("get-this", (args: Seq[HBLAny], context: Context) => {
     if (!args.isEmpty) {
       throw ArgumentException("get-this does not take any arguments")
@@ -247,7 +256,7 @@ object Builtins {
     println("Calling recur builtin!!")
     context.fn match {
       case Some(fn: HBLList) => {
-        given newContext: Context = context.withNewLocals(Interpreter.evalEach(args)(using context))
+        given Context = context.withNewLocals(Interpreter.evalEach(args)(using context))
         Interpreter.eval(fn)
       }
       case None => throw TopLevelException("Cannot use recur at top level, only within a function")
@@ -433,7 +442,7 @@ object Builtins {
     ),
     BigInt(10) -> HBLOverloadedBuiltin(
       {
-        case arity if arity == 0 => Builtins.getLocals
+        case arity if arity == 0 => Builtins.countLocals
       },
       {
         case Seq(x: BigInt) => Builtins.oddQ
@@ -452,6 +461,7 @@ object Builtins {
     ),
     HBLNil -> HBLOverloadedBuiltin(
       {
+        case arity if arity == 0 => Builtins.getLocals
         case arity if arity == 1 => Builtins.recur
         case arity if arity > 1 => Builtins.cond
       },
