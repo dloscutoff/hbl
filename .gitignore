@@ -1,5 +1,11 @@
+.bloop/
 .bsp/
 .idea/
+.metals/
+.vscode/
 brainstorming/
 project/target/
 target/
+
+*.jar
+metals.sbt
