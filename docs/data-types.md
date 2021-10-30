@@ -22,7 +22,7 @@ The empty list is also referred to as *nil*. It can be obtained by writing `'()`
 
 A list's output representation is an open parenthesis, followed by the output representations of its elements separated by spaces, followed by a closing parenthesis.
 
-If a nonempty list is evaluated, the result is a function or macro call, with the first element in the list serving as the function or macro and the remaining elements serving as arguments. If nil is evaluated, the result is a list representing the function on the current line.
+If a nonempty list is evaluated, the result is a function or macro call, with the first element in the list serving as the function or macro and the remaining elements serving as arguments. If nil is evaluated, the result is a list representing the function on the line above the current line.
 
 ## Builtin functions and macros
 
