@@ -28,7 +28,7 @@ If a nonempty list is evaluated, the result is a function or macro call, with th
 
 Builtins represent the basic functions and macros that are implemented by the interpreter. They can be called, passed to higher-order functions such as `map`, and placed in lists.
 
-In Thimble, each builtin function or macro can be referred to by its name. There is no way to directly refer to builtins in HBL; instead, each builtin can be called using its associated value.
+In Thimble, each builtin function or macro can be referred to by its name. There is no way to directly refer to builtins in HBL; instead, each builtin can be called using its [associated value](./hbl-builtins.md).
 
 A builtin function's output representation is the name of the function wrapped in angle brackets: for example, `<odd?>`. A builtin macro's output representation is the name of the macro wrapped in colons: for example, `:quote:`.
 

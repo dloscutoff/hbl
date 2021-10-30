@@ -8,11 +8,11 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `this`\* |
-| (int)       | `1to` |
-| (list)      | `length` |
-| (int int)   | `range` |
-| (int list)  | `take` |
+| ()          | [`this`](./thimble-builtins.md#line-references)\* |
+| (int)       | [`1to`](./thimble-builtins.md#1to) |
+| (list)      | [`length`](./thimble-builtins.md#length) |
+| (int int)   | [`range`](./thimble-builtins.md#range) |
+| (int list)  | [`take`](./thimble-builtins.md#take) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -24,10 +24,10 @@ Callable with:
 
 | Arg types      | Thimble equivalent |
 | -------------- | ------------------ |
-| (list)         | `head` |
-| (int int)      | `pow` |
-| (list int)     | `nth` |
-| (any ... list) | `cons` |
+| (list)         | [`head`](./thimble-builtins.md#head) |
+| (int int)      | [`pow`](./thimble-builtins.md#pow) |
+| (list int)     | [`nth`](./thimble-builtins.md#nth) |
+| (any ... list) | [`cons`](./thimble-builtins.md#cons) |
 
 ## `2`
 
@@ -37,10 +37,10 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `2prev`\* |
-| (int)       | `double` |
-| (list)      | `tail` |
-| (int list)  | `drop` |
+| ()          | [`2prev`](./thimble-builtins.md#line-references)\* |
+| (int)       | [`double`](./thimble-builtins.md#double) |
+| (list)      | [`tail`](./thimble-builtins.md#tail) |
+| (int list)  | [`drop`](./thimble-builtins.md#drop) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -52,10 +52,10 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `3prev`\* |
-| (int)       | `neg` |
-| (list)      | `reverse` |
-| (int int)   | `less?` |
+| ()          | [`3prev`](./thimble-builtins.md#line-references)\* |
+| (int)       | [`neg`](./thimble-builtins.md#neg) |
+| (list)      | [`reverse`](./thimble-builtins.md#reverse) |
+| (int int)   | [`less?`](./thimble-builtins.md#less) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -67,11 +67,11 @@ Callable with:
 
 | Arg types     | Thimble equivalent |
 | ------------- | ------------------ |
-| ()            | `4prev`\* |
-| (int)         | `inc` |
-| (int int)     | `add` |
-| (list list)   | `concat` |
-| (int int int) | `add` |
+| ()            | [`4prev`](./thimble-builtins.md#line-references)\* |
+| (int)         | [`inc`](./thimble-builtins.md#inc) |
+| (int int)     | [`add`](./thimble-builtins.md#add) |
+| (list list)   | [`concat`](./thimble-builtins.md#concat) |
+| (int int int) | [`add`](./thimble-builtins.md#add) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -83,10 +83,10 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `5prev`\* |
-| (int int)   | `mul` |
-| (list int)  | `repeat` |
-| (any list)  | `map` |
+| ()          | [`5prev`](./thimble-builtins.md#line-references)\* |
+| (int int)   | [`mul`](./thimble-builtins.md#mul) |
+| (list int)  | [`repeat`](./thimble-builtins.md#repeat) |
+| (any list)  | [`map`](./thimble-builtins.md#map) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -98,9 +98,9 @@ Callable with:
 
 | Arg types         | Thimble equivalent |
 | ----------------- | ------------------ |
-| (int)             | `dec` |
-| (int int)         | `sub` |
-| (any any ... any) | `chain` |
+| (int)             | [`dec`](./thimble-builtins.md#dec) |
+| (int int)         | [`sub`](./thimble-builtins.md#sub) |
+| (any any ... any) | [`chain`](./thimble-builtins.md#chain) |
 
 ## `/`
 
@@ -110,8 +110,8 @@ Callable with:
 
 | Arg types         | Thimble equivalent |
 | ----------------- | ------------------ |
-| (int)             | `abs` |
-| (int int)         | `div` |
+| (int)             | [`abs`](./thimble-builtins.md#abs) |
+| (int int)         | [`div`](./thimble-builtins.md#div) |
 
 ## `%`
 
@@ -121,10 +121,10 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `argcount`\* |
-| (int)       | `odd?` |
-| (int int)   | `mod` |
-| (any list)  | `filter` |
+| ()          | [`argcount`](./thimble-builtins.md#arguments)\* |
+| (int)       | [`odd?`](./thimble-builtins.md#odd) |
+| (int int)   | [`mod`](./thimble-builtins.md#mod) |
+| (any list)  | [`filter`](./thimble-builtins.md#filter) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -136,9 +136,9 @@ Callable with:
 
 | Arg types     | Thimble equivalent |
 | ------------- | ------------------ |
-| ()            | `arglist`\* |
-| (any)         | `recur` |
-| (any any ...) | `cond` |
+| ()            | [`arglist`](./thimble-builtins.md#arguments)\* |
+| (any)         | [`recur`](./thimble-builtins.md#recur) |
+| (any any ...) | [`cond`](./thimble-builtins.md#cond) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -146,13 +146,13 @@ Callable with:
 
 Magic value: first argument to the current function
 
-Thimble equivalent: `arg1`
+Thimble equivalent: [`arg1`](./thimble-builtins.md#arguments)
 
 ## `,`
 
 Magic value: second argument to the current function
 
-Thimble equivalent: `arg2`
+Thimble equivalent: [`arg2`](./thimble-builtins.md#arguments)
 
 ## `'0`
 
@@ -168,9 +168,9 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `arg1`\* |
-| (list)      | `last` |
-| (any list)  | `append` |
+| ()          | [`arg1`](./thimble-builtins.md#arguments)\* |
+| (list)      | [`last`](./thimble-builtins.md#last) |
+| (any list)  | [`append`](./thimble-builtins.md#append) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -182,8 +182,8 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `arg2`\* |
-| (list)      | `init` |
+| ()          | [`arg2`](./thimble-builtins.md#arguments)\* |
+| (list)      | [`init`](./thimble-builtins.md#init) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -195,7 +195,7 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `arg3`\* |
+| ()          | [`arg3`](./thimble-builtins.md#arguments)\* |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -207,7 +207,7 @@ Callable with:
 
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
-| ()          | `arg4`\* |
+| ()          | [`arg4`](./thimble-builtins.md#arguments)\* |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -243,18 +243,18 @@ Callable with:
 
 | Arg types     | Thimble equivalent |
 | ------------- | ------------------ |
-| (int)         | `zero?` |
-| (list)        | `empty?` |
-| (any any ...) | `recur` |
+| (int)         | [`zero?`](./thimble-builtins.md#zero) |
+| (list)        | [`empty?`](./thimble-builtins.md#empty) |
+| (any any ...) | [`recur`](./thimble-builtins.md#recur) |
 
 ## `'.`
 
 Magic value: list of arguments to the current function
 
-Thimble equivalent: `arglist`
+Thimble equivalent: [`arglist`](./thimble-builtins.md#arguments)
 
 ## `',`
 
 Magic value: third argument to the current function
 
-Thimble equivalent: `arg3`
+Thimble equivalent: [`arg3`](./thimble-builtins.md#arguments)
