@@ -67,8 +67,12 @@ object Interpreter {
     "tail" -> Builtins.tail,
     "length" -> Builtins.length,
     "reverse" -> Builtins.reverse,
+    "sum" -> Builtins.sum,
+    "product" -> Builtins.product,
+    "flatten" -> Builtins.flatten,
     "last" -> Builtins.last,
     "init" -> Builtins.init,
+    "flatten-once" -> Builtins.flattenOnce,
     "empty?" -> Builtins.emptyQ,
     "add" -> Builtins.add,
     "sub" -> Builtins.sub,
@@ -106,7 +110,7 @@ object Interpreter {
     "'<" -> BigInt(9),
     "'+" -> BigInt(26),
     //"'*" -> ???,
-    //"'-" -> ???,
+    "'-" -> BigInt(64),  // TODO: Probably pick a different value
     //"'/" -> ???,
     "'%" -> BigInt(100),
     "'?" -> BigInt(50),  // TODO: Probably pick a different value

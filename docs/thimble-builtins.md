@@ -98,6 +98,14 @@ Takes an integer and returns the argument times 2.
 
 Takes a list; returns 1 if the argument is the empty list, 0 if not.
 
+### `flatten`
+
+Takes a list, possibly nested; returns a new non-nested list containing all the elements of the sublists, with the sublists themselves having first been recursively flattened.
+
+### `flatten-once`
+
+Takes a list, possibly nested; returns a new list containing all the elements of the sublists. Sublists are not recursively flattened; if they contain lists, those lists will appear as lists in the result.
+
 ### `head`
 
 Takes a list and returns its first element. If the list is empty, returns nil.
@@ -126,9 +134,17 @@ Takes an integer and returns the argument negated.
 
 Takes an integer; returns 1 if the argument is an odd number, 0 if even.
 
+### `product`
+
+Takes a list of integers, [flattens](#flatten) it, and returns its product. If the list is empty, returns 1. If the flattened list contains any elements besides integers, throws an error.
+
 ### `reverse`
 
 Takes a list and returns a new list with the same elements in the opposite order.
+
+### `sum`
+
+Takes a list of integers, [flattens](#flatten) it, and returns its sum. If the list is empty, returns 0. If the flattened list contains any elements besides integers, throws an error.
 
 ### `tail`
 

@@ -69,6 +69,7 @@ Callable with:
 | ------------- | ------------------ |
 | ()            | [`4prev`](./thimble-builtins.md#line-references)\* |
 | (int)         | [`inc`](./thimble-builtins.md#inc) |
+| (list)        | [`sum`](./thimble-builtins.md#sum) |
 | (int int)     | [`add`](./thimble-builtins.md#add) |
 | (list list)   | [`concat`](./thimble-builtins.md#concat) |
 | (int int int) | [`add`](./thimble-builtins.md#add) |
@@ -84,6 +85,7 @@ Callable with:
 | Arg types   | Thimble equivalent |
 | ----------- | ------------------ |
 | ()          | [`5prev`](./thimble-builtins.md#line-references)\* |
+| (list)      | [`product`](./thimble-builtins.md#product) |
 | (int int)   | [`mul`](./thimble-builtins.md#mul) |
 | (list int)  | [`repeat`](./thimble-builtins.md#repeat) |
 | (any list)  | [`map`](./thimble-builtins.md#map) |
@@ -99,6 +101,7 @@ Callable with:
 | Arg types         | Thimble equivalent |
 | ----------------- | ------------------ |
 | (int)             | [`dec`](./thimble-builtins.md#dec) |
+| (list)            | [`flatten`](./thimble-builtins.md#flatten) |
 | (int int)         | [`sub`](./thimble-builtins.md#sub) |
 | (any any ... any) | [`chain`](./thimble-builtins.md#chain) |
 
@@ -219,9 +222,13 @@ Callable with: TBD
 
 ## `'-`
 
-Value: TBD
+Value: TBD, currently `64` (int)
 
-Callable with: TBD
+Callable with:
+
+| Arg types     | Thimble equivalent |
+| ------------- | ------------------ |
+| (list)        | [`flatten-once`](./thimble-builtins.md#flatten-once) |
 
 ## `'/`
 
