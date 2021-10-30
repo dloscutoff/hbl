@@ -53,7 +53,20 @@ class HBLList(vec: Vector[HBLAny], var lineNumber: Option[Int]) extends Seq[HBLA
   override def drop(num: Int): HBLList = HBLList(vec.drop(num))
   override def map[T](fn: HBLAny => T): Seq[T] = vec.map(fn)
   override def filter(fn: HBLAny => Boolean): HBLList = HBLList(vec.filter(fn))
+  override def reduce[T >: HBLAny](op: (T, T) => T): T = vec.reduce(op)
   def map(fn: HBLAny => HBLAny): HBLList = HBLList(vec.map(fn))
+  def flattenOnce: HBLList = HBLList(vec.flatten(element => {
+    element match {
+      case sublist: HBLList => sublist
+      case other => HBLList(other)
+    }
+  }))
+  def flattenAll: HBLList = HBLList(vec.flatten(element => {
+    element match {
+      case sublist: HBLList => sublist.flattenAll
+      case other => HBLList(other)
+    }
+  }))
   override def toString: String = vec.mkString("(", " ", ")")
 }
 
@@ -282,8 +295,26 @@ object Builtins {
   val tail = HBLFunction("tail", {case Seq(ls: HBLList) => if ls.isEmpty then HBLNil else ls.tail})
   val length = HBLFunction("length", {case Seq(ls: HBLList) => BigInt(ls.length)})
   val reverse = HBLFunction("reverse", {case Seq(ls: HBLList) => ls.reverse})
+  val sum = HBLFunction("sum", {case Seq(ls: HBLList) => {
+    if (ls.isEmpty) then 0 else ls.flattenAll.reduce((left: HBLAny, right: HBLAny) => {
+      (left, right) match {
+        case (x: BigInt, y: BigInt) => x + y
+        case _ => throw MatchError(left, right)
+      }
+    })
+  }})
+  val product = HBLFunction("product", {case Seq(ls: HBLList) => {
+    if (ls.isEmpty) then 1 else ls.flattenAll.reduce((left: HBLAny, right: HBLAny) => {
+      (left, right) match {
+        case (x: BigInt, y: BigInt) => x * y
+        case _ => throw MatchError(left, right)
+      }
+    })
+  }})
+  val flatten = HBLFunction("flatten", {case Seq(ls: HBLList) => ls.flattenAll})
   val last = HBLFunction("last", {case Seq(ls: HBLList) => if ls.isEmpty then HBLNil else ls.last})
   val init = HBLFunction("init", {case Seq(ls: HBLList) => if ls.isEmpty then HBLNil else ls.init})
+  val flattenOnce = HBLFunction("flatten-once", {case Seq(ls: HBLList) => ls.flattenOnce})
   val emptyQ = HBLFunction("empty?", {case Seq(ls: HBLList) => if ls.isEmpty then 1 else 0})
 
   // Two-argument (int, int) functions
@@ -340,6 +371,7 @@ object Builtins {
       },
       {
         case Seq(x: BigInt) => Builtins.dec
+        case Seq(ls: HBLList) => Builtins.flatten
         case Seq(x: BigInt, y: BigInt) => Builtins.sub
       }
     ),
@@ -395,7 +427,7 @@ object Builtins {
       },
       {
         case Seq(x: BigInt) => Builtins.inc
-        //case Seq(ls: HBLList) => Builtins.sum
+        case Seq(ls: HBLList) => Builtins.sum
         case Seq(x: BigInt, y: BigInt) => Builtins.add
         case Seq(ls1: HBLList, ls2: HBLList) => Builtins.concat
         case Seq(x: BigInt, y: BigInt, z: BigInt) => Builtins.add
@@ -407,7 +439,7 @@ object Builtins {
         case arity: Int if arity == 0 => generatePrevMacro(5)
       },
       {
-        //case Seq(ls: HBLList) => Builtins.product
+        case Seq(ls: HBLList) => Builtins.product
         case Seq(x: BigInt, y: BigInt) => Builtins.mul
         case Seq(ls: HBLList, x: BigInt) => Builtins.repeat
         case Seq(any: HBLAny, ls: HBLList) => Builtins.map
@@ -457,6 +489,13 @@ object Builtins {
       {
         case Seq(x: BigInt) => Builtins.zeroQ
         case Seq(ls: HBLList) => Builtins.emptyQ
+      }
+    ),
+    BigInt(64) -> HBLOverloadedBuiltin(  // TODO: Probably pick a different value
+      // No macros yet
+      arity => throw MatchError(arity),
+      {
+        case Seq(ls: HBLList) => Builtins.flattenOnce
       }
     ),
     HBLNil -> HBLOverloadedBuiltin(
