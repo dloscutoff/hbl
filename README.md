@@ -29,6 +29,10 @@ If you have Java installed, you can run HBL directly from a JAR file without any
 
 *Thanks to [cgccuser](https://github.com/cgccuser) for figuring out how to package the application in JAR format.*
 
+## Documentation
+
+Documentation for HBL and Thimble can be found in [the docs folder](https://github.com/dloscutoff/hbl/tree/main/docs#readme) of this repository.
+
 ## Example program
 
 Here is a program (`range10.hbl` in the examples directory) that takes an integer input N and returns a list of numbers from N up through N+10:
@@ -92,5 +96,3 @@ Each of these values can also be called as a function. The functions are heavily
 - `%` is used as a value, 10
 - `+` is called as a function with two integer arguments, which is interpreted as add
 - `0` is called as a function with one integer argument, which is interpreted as range
-
-More documentation coming soon!
