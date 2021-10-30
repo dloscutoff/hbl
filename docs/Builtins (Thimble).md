@@ -78,6 +78,134 @@ Takes one or more arguments and calls the current function again with those argu
 
 ## Functions (1 argument)
 
+### `1to`
+
+Takes an integer and returns a list of all integers from 1 up to the argument, inclusive. If the argument is less than 1, returns an empty list.
+
+### `abs`
+
+Takes an integer and returns its absolute value.
+
+### `dec`
+
+Takes an integer and returns the argument minus 1 (decremented).
+
+### `double`
+
+Takes an integer and returns the argument times 2.
+
+### `empty?`
+
+Takes a list; returns 1 if the argument is the empty list, 0 if not.
+
+### `head`
+
+Takes a list and returns its first element. If the list is empty, returns nil.
+
+### `inc`
+
+Takes an integer and returns the argument plus 1 (incremented).
+
+### `init`
+
+Takes a list and returns the sublist containing all but the last element. If the list is empty, returns nil.
+
+### `last`
+
+Takes a list and returns its last element. If the list is empty, returns nil.
+
+### `length`
+
+Takes a list and returns the number of elements in it.
+
+### `neg`
+
+Takes an integer and returns the argument negated.
+
+### `odd?`
+
+Takes an integer; returns 1 if the argument is an odd number, 0 if even.
+
+### `reverse`
+
+Takes a list and returns a new list with the same elements in the opposite order.
+
+### `tail`
+
+Takes a list and returns the sublist containing all but the first element. If the list is empty, returns nil.
+
+### `zero?`
+
+Takes an integer; returns 1 if the argument is zero, 0 if not.
+
 ## Functions (2 arguments)
 
-## Functions (3 or more arguments)
+### `append`
+
+Takes a value and a list; returns a new list whose `init` is the given list and whose `last` is the given value.
+
+### `concat`
+
+Takes two lists and concatenates them into a new list containing the elements of the first argument followed by the elements of the second argument.
+
+### `div`
+
+Takes two integers and returns the first divided by the second, rounded toward zero. If the second argument is 0, throws an error.
+
+### `drop`
+
+Takes an integer N and a list; returns the list with the first N elements removed. If the list has fewer than N elements, returns nil.
+
+### `filter`
+
+Takes a function and a list; returns a new list consisting of the elements from the second argument that return a truthy value when passed through the function.
+
+### `less?`
+
+Takes two integers; returns 1 if the first argument is less than the second argument, 0 if not.
+
+### `map`
+
+Takes a function and a list; returns a new list containing the results of passing each element of the second argument through the function.
+
+### `mod`
+
+Takes two integers and returns the first modulo the second. The sign of the result matches the sign of the second argument. If the second argument is 0, throws an error.
+
+### `mul`
+
+Takes two integers and returns their product.
+
+### `nth`
+
+Takes a list and an integer N; returns the element of the list at index N. Indices start at 1.
+
+### `pow`
+
+Takes two integers and returns the first to the power of the second. If the exponent is negative or the result would be too big, throws an error.
+
+### `range`
+
+Takes two integers and returns a list of all integers from the first argument up to the the second, inclusive. If the first argument is less than the second argument, returns nil.
+
+### `repeat`
+
+Takes a list and an integer N; returns the concatenation of N copies of the argument list. If N is 0 or negative, returns nil.
+
+### `sub`
+
+Takes two integers and returns the first minus the second.
+
+### `drop`
+
+Takes an integer N and a list; returns a list consisting of the first N elements of the argument list. If the list has fewer than N elements, returns the whole list. If N is 0 or negative, returns nil.
+
+## Functions (2 or more arguments)
+
+### `add`
+
+Takes either two or three integers and returns their sum.
+
+### `cons`
+
+Takes one or more values and a list; returns a new list with the given values, in order, added to the beginning of the argument list.
