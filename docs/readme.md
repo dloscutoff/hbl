@@ -1,5 +1,6 @@
 # HBL documentation
 
+1. [Example program](./example.md)
 1. [Codepage](./codepage.md)
 1. [Data types](./data-types.md)
 1. Builtins
