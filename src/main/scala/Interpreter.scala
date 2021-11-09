@@ -51,6 +51,7 @@ object Interpreter {
     "count-locals" -> Builtins.countLocals,
     "get-prev" -> Builtins.getPrevLine,
     "get-this" -> Builtins.getThisLine,
+    "get-next" -> Builtins.getNextLine,
     "cond" -> Builtins.cond,
     "chain" -> Builtins.chain,
     "recur" -> Builtins.recur,
@@ -70,6 +71,7 @@ object Interpreter {
     "sum" -> Builtins.sum,
     "product" -> Builtins.product,
     "flatten" -> Builtins.flatten,
+    "sort" -> Builtins.sort,
     "last" -> Builtins.last,
     "init" -> Builtins.init,
     "flatten-once" -> Builtins.flattenOnce,
@@ -168,17 +170,16 @@ object Interpreter {
       case LeafNode(Token(atom)) => {
         val intPattern = "-?\\d+".r
         val numberedArgPattern = "arg([1-9])".r
-        val prevRefPattern = "(\\d*)prev".r
+        val prevRefPattern = "(\\d+)prev".r
         atom match {
           case intPattern() => BigInt(atom)
           case numberedArgPattern(argnum) => HBLList(Builtins.getLocal, BigInt(argnum))
           case "arglist" => HBLList(Builtins.getLocals)
           case "argcount" => HBLList(Builtins.countLocals)
-          case prevRefPattern(offset) => {
-            val relativeIndex = if offset == "" then 1 else offset.toInt
-            HBLList(Builtins.getPrevLine, relativeIndex)
-          }
+          case prevRefPattern(offset) => HBLList(Builtins.getPrevLine, offset.toInt)
+          case "prev" => HBLList(Builtins.getPrevLine)
           case "this" => HBLList(Builtins.getThisLine)
+          case "next" => HBLList(Builtins.getNextLine)
           case namedBuiltins(builtin) => builtin
           case _ => throw TokenException(s"$atom")
         }

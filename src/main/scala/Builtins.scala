@@ -67,6 +67,7 @@ class HBLList(vec: Vector[HBLAny], var lineNumber: Option[Int]) extends Seq[HBLA
       case other => HBLList(other)
     }
   }))
+  def sorted: HBLList = HBLList(vec.sortWith(Builtins.isLess))
   override def toString: String = vec.mkString("(", " ", ")")
 }
 
@@ -144,6 +145,29 @@ object Builtins {
       case x: BigInt => x != 0
       case ls: HBLList => !ls.isEmpty
       case fnOrMacro: HBLBuiltin => true
+    }
+  }
+
+  def isLess(left: HBLAny, right: HBLAny): Boolean = {
+    // Builtin < integer < list
+    (left, right) match {
+      case (fn: HBLBuiltin, _) => true
+      case (_, fn: HBLBuiltin) => false
+      case (x: BigInt, y: BigInt) => x < y
+      case (x: BigInt, ls: HBLList) => true
+      case (ls: HBLList, x: BigInt) => false
+      case (ls1: HBLList, ls2: HBLList) => {
+        if (ls2.isEmpty) {
+          false
+        } else if (ls1.isEmpty) {
+          true
+        } else if (ls1.head != ls2.head) {
+          isLess(ls1.head, ls2.head)
+        } else {
+          isLess(ls1.tail, ls2.tail)
+        }
+      }
+      case _ => throw MatchError(left, right)
     }
   }
 
@@ -242,6 +266,13 @@ object Builtins {
     }, context)
   })
 
+  val getNextLine = HBLFinalMacro("get-next", (args: Seq[HBLAny], context: Context) => {
+    getRelativeProgramLine(args match {
+      case Seq(arg: BigInt) => bigIntToInt(arg)
+      case Seq() => 1
+    }, context)
+  })
+
   // Variadic macros
   val cond = HBLRewriteMacro("cond", (args: Seq[HBLAny], context: Context) => {
     var Seq(testExpr: HBLAny, trueExpr: HBLAny, moreExprs*) = args
@@ -312,6 +343,7 @@ object Builtins {
     })
   }})
   val flatten = HBLFunction("flatten", {case Seq(ls: HBLList) => ls.flattenAll})
+  val sort = HBLFunction("sort", {case Seq(ls: HBLList) => ls.sorted})
   val last = HBLFunction("last", {case Seq(ls: HBLList) => if ls.isEmpty then HBLNil else ls.last})
   val init = HBLFunction("init", {case Seq(ls: HBLList) => if ls.isEmpty then HBLNil else ls.init})
   val flattenOnce = HBLFunction("flatten-once", {case Seq(ls: HBLList) => ls.flattenOnce})
@@ -367,6 +399,7 @@ object Builtins {
   val overloadedBuiltins = Map(
     BigInt(-1) -> HBLOverloadedBuiltin(
       {
+        case arity: Int if arity == 0 => Builtins.getNextLine
         case arity: Int if arity >= 3 => Builtins.chain
       },
       {
@@ -478,6 +511,7 @@ object Builtins {
       },
       {
         case Seq(x: BigInt) => Builtins.oddQ
+        case Seq(ls: HBLList) => Builtins.sort
         case Seq(x: BigInt, y: BigInt) => Builtins.mod
         case Seq(any: HBLAny, ls: HBLList) => Builtins.filter
       }
