@@ -55,6 +55,7 @@ class HBLList(vec: Vector[HBLAny], var lineNumber: Option[Int]) extends Seq[HBLA
   override def filter(fn: HBLAny => Boolean): HBLList = HBLList(vec.filter(fn))
   override def reduce[T >: HBLAny](op: (T, T) => T): T = vec.reduce(op)
   def map(fn: HBLAny => HBLAny): HBLList = HBLList(vec.map(fn))
+  def zip(that: HBLList): HBLList = HBLList(vec.zip(that).map((x, y) => HBLList(x, y)))
   def flattenOnce: HBLList = HBLList(vec.flatten(element => {
     element match {
       case sublist: HBLList => sublist
@@ -391,6 +392,7 @@ object Builtins {
   val drop = HBLFunction("drop", {case Seq(x: BigInt, ls: HBLList) => ls.drop(bigIntToInt(x))})
 
   // Two-argument (list, list) functions
+  val zip = HBLFunction("zip", {case Seq(ls1: HBLList, ls2: HBLList) => ls1.zip(ls2)})
   val concat = HBLFunction("concat", {case Seq(ls1: HBLList, ls2: HBLList) => ls1.appendedAll(ls2)})
 
   // Variadic functions
@@ -449,7 +451,7 @@ object Builtins {
         case Seq(x: BigInt) => Builtins.double
         case Seq(ls: HBLList) => Builtins.tail
         case Seq(any: BigInt, ls: HBLList) => Builtins.drop
-        //case Seq(ls1: HBLList, ls2: HBLList) => Builtins.zip
+        case Seq(ls1: HBLList, ls2: HBLList) => Builtins.zip
         //case Seq(any: HBLAny, ls1: HBLList, ls2: HBLList) => Builtins.zipWith
       }
     ),

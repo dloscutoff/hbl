@@ -93,6 +93,7 @@ object Interpreter {
     "append" -> Builtins.append,
     "take" -> Builtins.take,
     "drop" -> Builtins.drop,
+    "zip" -> Builtins.zip,
     "concat" -> Builtins.concat,
     "cons" -> Builtins.cons,
   )
