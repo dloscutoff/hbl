@@ -115,6 +115,7 @@ Callable with:
 | Arg types         | Thimble equivalent |
 | ----------------- | ------------------ |
 | (int)             | [`abs`](./thimble-builtins.md#abs) |
+| (list)            | [`max`](./thimble-builtins.md#max) |
 | (int int)         | [`div`](./thimble-builtins.md#div) |
 
 ## `%`
@@ -218,7 +219,7 @@ Callable with:
 
 ## `'*`
 
-Value: TBD
+Value: TBD, currently `32` (int)
 
 Callable with: TBD
 
@@ -234,9 +235,13 @@ Callable with:
 
 ## `'/`
 
-Value: TBD
+Value: TBD, currently `20` (int)
 
-Callable with: TBD
+Callable with:
+
+| Arg types     | Thimble equivalent |
+| ------------- | ------------------ |
+| (list)        | [`min`](./thimble-builtins.md#min) |
 
 ## `'%`
 

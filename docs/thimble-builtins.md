@@ -130,6 +130,14 @@ Takes a list and returns its last element. If the list is empty, returns nil.
 
 Takes a list and returns the number of elements in it.
 
+### `max`
+
+Takes a list, [flattens](#flatten) it, and returns its maximum element. If the list is empty, returns nil.
+
+### `min`
+
+Takes a list, [flattens](#flatten) it, and returns its minimum element. If the list is empty, returns nil.
+
 ### `neg`
 
 Takes an integer and returns the argument negated.
