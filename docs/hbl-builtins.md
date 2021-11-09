@@ -100,6 +100,7 @@ Callable with:
 
 | Arg types         | Thimble equivalent |
 | ----------------- | ------------------ |
+| ()                | [`next`](./thimble-builtins.md#line-references)\* |
 | (int)             | [`dec`](./thimble-builtins.md#dec) |
 | (list)            | [`flatten`](./thimble-builtins.md#flatten) |
 | (int int)         | [`sub`](./thimble-builtins.md#sub) |
@@ -126,6 +127,7 @@ Callable with:
 | ----------- | ------------------ |
 | ()          | [`argcount`](./thimble-builtins.md#arguments)\* |
 | (int)       | [`odd?`](./thimble-builtins.md#odd) |
+| (list)      | [`sort`](./thimble-builtins.md#sort) |
 | (int int)   | [`mod`](./thimble-builtins.md#mod) |
 | (any list)  | [`filter`](./thimble-builtins.md#filter) |
 
