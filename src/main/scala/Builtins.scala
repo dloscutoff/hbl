@@ -151,8 +151,8 @@ object Builtins {
   def isLess(left: HBLAny, right: HBLAny): Boolean = {
     // Builtin < integer < list
     (left, right) match {
-      case (fn: HBLBuiltin, _) => true
       case (_, fn: HBLBuiltin) => false
+      case (fn: HBLBuiltin, _) => true
       case (x: BigInt, y: BigInt) => x < y
       case (x: BigInt, ls: HBLList) => true
       case (ls: HBLList, x: BigInt) => false
@@ -343,10 +343,20 @@ object Builtins {
     })
   }})
   val flatten = HBLFunction("flatten", {case Seq(ls: HBLList) => ls.flattenAll})
+  val max = HBLFunction("max", {case Seq(ls: HBLList) => {
+    if (ls.isEmpty) then HBLNil else ls.flattenAll.reduce((left: HBLAny, right: HBLAny) => {
+      if (isLess(right, left)) then left else right
+    })
+  }})
   val sort = HBLFunction("sort", {case Seq(ls: HBLList) => ls.sorted})
   val last = HBLFunction("last", {case Seq(ls: HBLList) => if ls.isEmpty then HBLNil else ls.last})
   val init = HBLFunction("init", {case Seq(ls: HBLList) => if ls.isEmpty then HBLNil else ls.init})
   val flattenOnce = HBLFunction("flatten-once", {case Seq(ls: HBLList) => ls.flattenOnce})
+  val min = HBLFunction("min", {case Seq(ls: HBLList) => {
+    if (ls.isEmpty) then HBLNil else ls.flattenAll.reduce((left: HBLAny, right: HBLAny) => {
+      if (isLess(right, left)) then right else left
+    })
+  }})
   val emptyQ = HBLFunction("empty?", {case Seq(ls: HBLList) => if ls.isEmpty then 1 else 0})
 
   // Two-argument (int, int) functions
@@ -492,7 +502,7 @@ object Builtins {
       arity => throw MatchError(arity),
       {
         case Seq(x: BigInt) => Builtins.abs
-        //case Seq(ls: HBLList) => Builtins.min
+        case Seq(ls: HBLList) => Builtins.max
         case Seq(x: BigInt, y: BigInt) => Builtins.div
         //case Seq(any: HBLAny, ls: HBLList) => Builtins.reduceLeft
         //case Seq(any1: HBLAny, any2: HBLAny, ls: HBLList) => Builtins.foldLeft
@@ -514,6 +524,13 @@ object Builtins {
         case Seq(ls: HBLList) => Builtins.sort
         case Seq(x: BigInt, y: BigInt) => Builtins.mod
         case Seq(any: HBLAny, ls: HBLList) => Builtins.filter
+      }
+    ),
+    BigInt(20) -> HBLOverloadedBuiltin(  // TODO: Probably pick a different value
+      // No macros yet
+      arity => throw MatchError(arity),
+      {
+        case Seq(ls: HBLList) => Builtins.min
       }
     ),
     BigInt(50) -> HBLOverloadedBuiltin(  // TODO: Probably pick a different value

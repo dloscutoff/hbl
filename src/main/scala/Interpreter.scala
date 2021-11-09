@@ -71,10 +71,12 @@ object Interpreter {
     "sum" -> Builtins.sum,
     "product" -> Builtins.product,
     "flatten" -> Builtins.flatten,
+    "max" -> Builtins.max,
     "sort" -> Builtins.sort,
     "last" -> Builtins.last,
     "init" -> Builtins.init,
     "flatten-once" -> Builtins.flattenOnce,
+    "min" -> Builtins.min,
     "empty?" -> Builtins.emptyQ,
     "add" -> Builtins.add,
     "sub" -> Builtins.sub,
@@ -111,9 +113,9 @@ object Interpreter {
     "'2" -> BigInt(8),
     "'<" -> BigInt(9),
     "'+" -> BigInt(26),
-    //"'*" -> ???,
+    "'*" -> BigInt(32),  // TODO: Probably pick a different value
     "'-" -> BigInt(64),  // TODO: Probably pick a different value
-    //"'/" -> ???,
+    "'/" -> BigInt(20),  // TODO: Probably pick a different value
     "'%" -> BigInt(100),
     "'?" -> BigInt(50),  // TODO: Probably pick a different value
   )
