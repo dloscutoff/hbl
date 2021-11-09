@@ -26,7 +26,7 @@ The main function on the same line as the current function is `this`.
 
 > **Note:** `this` may be different from the current function! If you call a nested function, the current function (the one that gets called by `recur`) is the nested function, but `this` is the outer function.
 
-The function or value on the line above the current function is `prev`. The lines above that are `2prev`, `3prev`, and so on. The references wrap around: for example, calling `prev` from the first line in the program references the last line in the program.
+The function or value on the line above the current function is `prev`. The lines above that are `2prev`, `3prev`, and so on. The function or value on the line below the current function is `next`. The references wrap around: for example, calling `prev` from the first line in the program references the last line in the program.
 
 ## Macros
 
@@ -59,6 +59,10 @@ Takes one argument, a positive integer N, and returns the Nth argument passed to
 ### `get-locals`
 
 Takes no arguments and returns the list of all arguments passed to the current function. `(get-locals)` is equivalent to the magic value `arglist`.
+
+### `get-next`
+
+Takes one optional argument, an integer N, and returns the contents of the Nth line after the current function's line. If N is omitted, returns the contents of the line directly below the current function's line. `(get-next)` is equivalent to the magic value `next`.
 
 ### `get-prev`
 
@@ -141,6 +145,10 @@ Takes a list of integers, [flattens](#flatten) it, and returns its product. If t
 ### `reverse`
 
 Takes a list and returns a new list with the same elements in the opposite order.
+
+### `sort`
+
+Takes a list and returns a new list with the same elements sorted in [ascending order](./data-types.md#comparison).
 
 ### `sum`
 

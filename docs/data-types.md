@@ -33,3 +33,14 @@ In Thimble, each builtin function or macro can be referred to by its name. There
 A builtin function's output representation is the name of the function wrapped in angle brackets: for example, `<odd?>`. A builtin macro's output representation is the name of the macro wrapped in colons: for example, `:quote:`.
 
 If a builtin function or macro is evaluated, the result is the builtin itself. (To call a builtin, it must be placed in a list with its arguments and that list evaluated.)
+
+## Comparison
+
+Even though the `less?` function only operates on integers, all HBL data types can be compared with each other. This underlying comparison is used, for instance, when `sort`ing a list.
+
+- Builtins are less than values of any other type. No builtin is less than another builtin.
+- Integers are less than lists. Two integers are ordered by the usual less-than operation from mathematics.
+- When comparing two lists:
+    - An empty list is less than any nonempty list.
+    - A nonempty list is less than another nonempty list if its first element is less than the first element of the other list.
+    - If the first elements of both lists are identical, the tails of the lists are compared recursively.
