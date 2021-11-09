@@ -232,6 +232,10 @@ Takes two integers and returns the first minus the second.
 
 Takes an integer N and a list; returns a list consisting of the first N elements of the argument list. If the list has fewer than N elements, returns the whole list. If N is 0 or negative, returns nil.
 
+### `zip`
+
+Takes two lists and returns a list of two-item lists containing pairs of elements from the two arguments. If the argument lists are of different lengths, the result has the same length as the shorter list.
+
 ## Functions (2 or more arguments)
 
 ### `add`

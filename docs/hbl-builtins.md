@@ -41,6 +41,7 @@ Callable with:
 | (int)       | [`double`](./thimble-builtins.md#double) |
 | (list)      | [`tail`](./thimble-builtins.md#tail) |
 | (int list)  | [`drop`](./thimble-builtins.md#drop) |
+| (list list) | [`zip`](./thimble-builtins.md#zip) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
