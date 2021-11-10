@@ -95,7 +95,7 @@ object Main {
     for (commandLineArg <- commandLineArgs.toList) yield {
       val InternalNode(parsedArg, _, _) = Parser.parseExpanded(commandLineArg)
       parsedArg match {
-        case List(parsedExpr) => Interpreter.translateExpanded(parsedExpr)
+        case List(parsedExpr) => Translator.translateExpanded(parsedExpr)
         case _ => throw ArgumentException(s"Incorrectly formatted expression in command-line argument: $commandLineArg")
       }
     }
