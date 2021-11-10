@@ -132,15 +132,6 @@ object Builtins {
   ///////////////////////
   // Utility functions //
   ///////////////////////
-  def bigIntToInt(x: BigInt): Int = {
-    if (x > Int.MaxValue)
-      Int.MaxValue
-    else if (x < Int.MinValue)
-      Int.MinValue
-    else
-      x.toInt
-  }
-
   def isTruthy(item: HBLAny): Boolean = {
     item match {
       case x: BigInt => x != 0
@@ -172,10 +163,6 @@ object Builtins {
     }
   }
 
-  // Scala's % and BigInt.mod are both wrong. Fight me.
-  def correctMod(x: Int, y: Int): Int = ((x % y) + y) % y
-  def correctMod(x: BigInt, y: BigInt): BigInt = ((x % y) + y) % y
-
   def getRelativeProgramLine(relativeIndex: Int, context: Context): HBLAny = {
     val currentIndex = context.lineNumber match {
       case Some(number) => number
@@ -183,7 +170,7 @@ object Builtins {
     }
     Interpreter.programLines.length match {
       case programLength if programLength > 0 => {
-        val absoluteIndex = correctMod(currentIndex + relativeIndex, programLength)
+        val absoluteIndex = Utils.mod(currentIndex + relativeIndex, programLength)
         Interpreter.programLines(absoluteIndex)
       }
       case _ => throw LineReferenceException("Cannot reference another line while loading first line")
@@ -256,20 +243,20 @@ object Builtins {
     } else if (index > context.locals.length) {
       throw ArgumentException(s"Not enough arguments to bind arg$index in user-defined function")
     } else {
-      context.locals(bigIntToInt(index - 1))
+      context.locals(Utils.bigIntToInt(index - 1))
     }
   })
 
   val getPrevLine = HBLFinalMacro("get-prev", (args: Seq[HBLAny], context: Context) => {
     getRelativeProgramLine(args match {
-      case Seq(arg: BigInt) => -bigIntToInt(arg)
+      case Seq(arg: BigInt) => -Utils.bigIntToInt(arg)
       case Seq() => -1
     }, context)
   })
 
   val getNextLine = HBLFinalMacro("get-next", (args: Seq[HBLAny], context: Context) => {
     getRelativeProgramLine(args match {
-      case Seq(arg: BigInt) => bigIntToInt(arg)
+      case Seq(arg: BigInt) => Utils.bigIntToInt(arg)
       case Seq() => 1
     }, context)
   })
@@ -364,17 +351,17 @@ object Builtins {
   val sub = HBLFunction("sub", {case Seq(x: BigInt, y: BigInt) => x - y})
   val mul = HBLFunction("mul", {case Seq(x: BigInt, y: BigInt) => x * y})
   val div = HBLFunction("div", {case Seq(x: BigInt, y: BigInt) => x / y})
-  val mod = HBLFunction("mod", {case Seq(x: BigInt, y: BigInt) => correctMod(x, y)})
-  val pow = HBLFunction("pow", {case Seq(x: BigInt, y: BigInt) => x.pow(bigIntToInt(y))})
+  val mod = HBLFunction("mod", {case Seq(x: BigInt, y: BigInt) => Utils.mod(x, y)})
+  val pow = HBLFunction("pow", {case Seq(x: BigInt, y: BigInt) => x.pow(Utils.bigIntToInt(y))})
   val lessQ = HBLFunction("less?", {case Seq(x: BigInt, y: BigInt) => if x < y then 1 else 0})
   val range = HBLFunction("range", {case Seq(x: BigInt, y: BigInt) => HBLList(x to y)})
 
   // Two-argument (list, int) functions
   val nth = HBLFunction("nth", {
     case Seq(ls: HBLList, x: BigInt) =>
-      if x > 0 && x <= ls.length then ls(bigIntToInt(x - 1)) else HBLNil
+      if x > 0 && x <= ls.length then ls(Utils.bigIntToInt(x - 1)) else HBLNil
   })
-  val repeat = HBLFunction("repeat", {case Seq(ls: HBLList, x: BigInt) => ls.repeat(bigIntToInt(x))})
+  val repeat = HBLFunction("repeat", {case Seq(ls: HBLList, x: BigInt) => ls.repeat(Utils.bigIntToInt(x))})
 
   // Two-argument (any, list) functions
   val map = HBLFunction("map", {
@@ -388,8 +375,8 @@ object Builtins {
   val append = HBLFunction("append", {case Seq(item: HBLAny, ls: HBLList) => ls.appended(item)})
 
   // Two-argument (int, list) functions
-  val take = HBLFunction("take", {case Seq(x: BigInt, ls: HBLList) => ls.take(bigIntToInt(x))})
-  val drop = HBLFunction("drop", {case Seq(x: BigInt, ls: HBLList) => ls.drop(bigIntToInt(x))})
+  val take = HBLFunction("take", {case Seq(x: BigInt, ls: HBLList) => ls.take(Utils.bigIntToInt(x))})
+  val drop = HBLFunction("drop", {case Seq(x: BigInt, ls: HBLList) => ls.drop(Utils.bigIntToInt(x))})
 
   // Two-argument (list, list) functions
   val zip = HBLFunction("zip", {case Seq(ls1: HBLList, ls2: HBLList) => ls1.zip(ls2)})
@@ -406,159 +393,4 @@ object Builtins {
       val (ls: HBLList, items: Seq[HBLAny]) = (args.last, args.take(args.length - 1))
       ls.prependedAll(items)
   })
-
-  // Overloaded builtins for the golfed version
-  val overloadedBuiltins = Map(
-    BigInt(-1) -> HBLOverloadedBuiltin(
-      {
-        case arity: Int if arity == 0 => Builtins.getNextLine
-        case arity: Int if arity >= 3 => Builtins.chain
-      },
-      {
-        case Seq(x: BigInt) => Builtins.dec
-        case Seq(ls: HBLList) => Builtins.flatten
-        case Seq(x: BigInt, y: BigInt) => Builtins.sub
-      }
-    ),
-    BigInt(0) -> HBLOverloadedBuiltin(
-      {
-        case arity: Int if arity == 0 => Builtins.getThisLine
-      },
-      {
-        case Seq(x: BigInt) => Builtins.oneTo
-        case Seq(ls: HBLList) => Builtins.length
-        case Seq(x: BigInt, y: BigInt) => Builtins.range
-        case Seq(x: BigInt, ls: HBLList) => Builtins.take
-      }
-    ),
-    BigInt(1) -> HBLOverloadedBuiltin(
-      // No macros yet
-      arity => throw MatchError(arity),
-      {
-        case Seq(ls: HBLList) => Builtins.head
-        case Seq(x: BigInt, y: BigInt) => Builtins.pow
-        case Seq(ls: HBLList, x: BigInt) => Builtins.nth
-        case Seq(any: HBLAny, ls: HBLList) => Builtins.cons
-        case Seq(any1: HBLAny, any2: HBLAny, ls: HBLList) => Builtins.cons
-        case Seq(any1: HBLAny, any2: HBLAny, any3: HBLAny, ls: HBLList) => Builtins.cons
-      }
-    ),
-    BigInt(2) -> HBLOverloadedBuiltin(
-      {
-        case arity: Int if arity == 0 => generatePrevMacro(2)
-      },
-      {
-        case Seq(x: BigInt) => Builtins.double
-        case Seq(ls: HBLList) => Builtins.tail
-        case Seq(any: BigInt, ls: HBLList) => Builtins.drop
-        case Seq(ls1: HBLList, ls2: HBLList) => Builtins.zip
-        //case Seq(any: HBLAny, ls1: HBLList, ls2: HBLList) => Builtins.zipWith
-      }
-    ),
-    BigInt(3) -> HBLOverloadedBuiltin(
-      {
-        case arity: Int if arity == 0 => generatePrevMacro(3)
-      },
-      {
-        case Seq(x: BigInt) => Builtins.neg
-        case Seq(ls: HBLList) => Builtins.reverse
-        case Seq(x: BigInt, y: BigInt) => Builtins.lessQ
-        //case Seq(any1: HBLAny, ls: HBLList, any2: HBLAny) => Builtins.mapLeft
-      }
-    ),
-    BigInt(4) -> HBLOverloadedBuiltin(
-      {
-        case arity: Int if arity == 0 => generatePrevMacro(4)
-      },
-      {
-        case Seq(x: BigInt) => Builtins.inc
-        case Seq(ls: HBLList) => Builtins.sum
-        case Seq(x: BigInt, y: BigInt) => Builtins.add
-        case Seq(ls1: HBLList, ls2: HBLList) => Builtins.concat
-        case Seq(x: BigInt, y: BigInt, z: BigInt) => Builtins.add
-        //case Seq(any1: HBLAny, ls: HBLList, any2: HBLAny) => Builtins.mapLeft
-      }
-    ),
-    BigInt(5) -> HBLOverloadedBuiltin(
-      {
-        case arity: Int if arity == 0 => generatePrevMacro(5)
-      },
-      {
-        case Seq(ls: HBLList) => Builtins.product
-        case Seq(x: BigInt, y: BigInt) => Builtins.mul
-        case Seq(ls: HBLList, x: BigInt) => Builtins.repeat
-        case Seq(any: HBLAny, ls: HBLList) => Builtins.map
-        //case Seq(any1: HBLAny, any2: HBLAny, ls: HBLList) => Builtins.mapRight
-      }
-    ),
-    BigInt(6) -> HBLOverloadedBuiltin(
-      // No macros yet
-      arity => throw MatchError(arity),
-      {
-        case Seq(ls: HBLList) => Builtins.last
-        case Seq(any: HBLAny, ls: HBLList) => Builtins.append
-      }
-    ),
-    BigInt(7) -> HBLOverloadedBuiltin(
-      // No macros yet
-      arity => throw MatchError(arity),
-      {
-        case Seq(x: BigInt) => Builtins.abs
-        case Seq(ls: HBLList) => Builtins.max
-        case Seq(x: BigInt, y: BigInt) => Builtins.div
-        //case Seq(any: HBLAny, ls: HBLList) => Builtins.reduceLeft
-        //case Seq(any1: HBLAny, any2: HBLAny, ls: HBLList) => Builtins.foldLeft
-      }
-    ),
-    BigInt(8) -> HBLOverloadedBuiltin(
-      // No macros yet
-      arity => throw MatchError(arity),
-      {
-        case Seq(ls: HBLList) => Builtins.init
-      }
-    ),
-    BigInt(10) -> HBLOverloadedBuiltin(
-      {
-        case arity if arity == 0 => Builtins.countLocals
-      },
-      {
-        case Seq(x: BigInt) => Builtins.oddQ
-        case Seq(ls: HBLList) => Builtins.sort
-        case Seq(x: BigInt, y: BigInt) => Builtins.mod
-        case Seq(any: HBLAny, ls: HBLList) => Builtins.filter
-      }
-    ),
-    BigInt(20) -> HBLOverloadedBuiltin(  // TODO: Probably pick a different value
-      // No macros yet
-      arity => throw MatchError(arity),
-      {
-        case Seq(ls: HBLList) => Builtins.min
-      }
-    ),
-    BigInt(50) -> HBLOverloadedBuiltin(  // TODO: Probably pick a different value
-      {
-        case arity: Int if arity >= 2 => Builtins.recur
-      },
-      {
-        case Seq(x: BigInt) => Builtins.zeroQ
-        case Seq(ls: HBLList) => Builtins.emptyQ
-      }
-    ),
-    BigInt(64) -> HBLOverloadedBuiltin(  // TODO: Probably pick a different value
-      // No macros yet
-      arity => throw MatchError(arity),
-      {
-        case Seq(ls: HBLList) => Builtins.flattenOnce
-      }
-    ),
-    HBLNil -> HBLOverloadedBuiltin(
-      {
-        case arity if arity == 0 => Builtins.getLocals
-        case arity if arity == 1 => Builtins.recur
-        case arity if arity > 1 => Builtins.cond
-      },
-      // No functions
-      args => throw MatchError(args)
-    ),
-  )
 }

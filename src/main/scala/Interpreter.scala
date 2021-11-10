@@ -21,8 +21,6 @@ package hbl
 import scala.collection.mutable.ArrayBuffer
 
 class NotCallableException(message: String) extends Exception(message)
-class UnknownParenException(message: String) extends Exception(message)
-class TokenException(message: String) extends Exception(message)
 class MissingOverloadException(message: String) extends Exception(message)
 
 //case class Context(lines: Seq[HBLAny], lineNumber: Option[Int], fn: Option[HBLList], locals: Seq[HBLAny]) {
@@ -40,92 +38,12 @@ object Context {
 
 object Interpreter {
   val programLines: ArrayBuffer[HBLAny] = new ArrayBuffer
-  
-  val namedBuiltins: Map[String, HBLAny] = Map(
-    // Values
-    "nil" -> HBLList(Builtins.quote, Builtins.HBLNil),
-    // Macros
-    "quote" -> Builtins.quote,
-    "get-local" -> Builtins.getLocal,
-    "get-locals" -> Builtins.getLocals,
-    "count-locals" -> Builtins.countLocals,
-    "get-prev" -> Builtins.getPrevLine,
-    "get-this" -> Builtins.getThisLine,
-    "get-next" -> Builtins.getNextLine,
-    "cond" -> Builtins.cond,
-    "chain" -> Builtins.chain,
-    "recur" -> Builtins.recur,
-    // Functions
-    "inc" -> Builtins.inc,
-    "dec" -> Builtins.dec,
-    "double" -> Builtins.double,
-    "neg" -> Builtins.neg,
-    "abs" -> Builtins.abs,
-    "odd?" -> Builtins.oddQ,
-    "zero?" -> Builtins.zeroQ,
-    "1to" -> Builtins.oneTo,
-    "head" -> Builtins.head,
-    "tail" -> Builtins.tail,
-    "length" -> Builtins.length,
-    "reverse" -> Builtins.reverse,
-    "sum" -> Builtins.sum,
-    "product" -> Builtins.product,
-    "flatten" -> Builtins.flatten,
-    "max" -> Builtins.max,
-    "sort" -> Builtins.sort,
-    "last" -> Builtins.last,
-    "init" -> Builtins.init,
-    "flatten-once" -> Builtins.flattenOnce,
-    "min" -> Builtins.min,
-    "empty?" -> Builtins.emptyQ,
-    "add" -> Builtins.add,
-    "sub" -> Builtins.sub,
-    "mul" -> Builtins.mul,
-    "div" -> Builtins.div,
-    "mod" -> Builtins.mod,
-    "pow" -> Builtins.pow,
-    "less?" -> Builtins.lessQ,
-    "range" -> Builtins.range,
-    "nth" -> Builtins.nth,
-    "repeat" -> Builtins.repeat,
-    "map" -> Builtins.map,
-    "filter" -> Builtins.filter,
-    "append" -> Builtins.append,
-    "take" -> Builtins.take,
-    "drop" -> Builtins.drop,
-    "zip" -> Builtins.zip,
-    "concat" -> Builtins.concat,
-    "cons" -> Builtins.cons,
-  )
-
-  val codepageValues: Map[String, HBLAny] = Map(
-    "0" -> BigInt(0),
-    "1" -> BigInt(1),
-    "2" -> BigInt(2),
-    "<" -> BigInt(3),
-    "+" -> BigInt(4),
-    "*" -> BigInt(5),
-    "-" -> BigInt(-1),
-    "/" -> BigInt(7),
-    "%" -> BigInt(10),
-    "?" -> HBLList(Builtins.quote, Builtins.HBLNil),
-    "'0" -> BigInt(16),
-    "'1" -> BigInt(6),
-    "'2" -> BigInt(8),
-    "'<" -> BigInt(9),
-    "'+" -> BigInt(26),
-    "'*" -> BigInt(32),  // TODO: Probably pick a different value
-    "'-" -> BigInt(64),  // TODO: Probably pick a different value
-    "'/" -> BigInt(20),  // TODO: Probably pick a different value
-    "'%" -> BigInt(100),
-    "'?" -> BigInt(50),  // TODO: Probably pick a different value
-  )
 
   def loadGolfedProgram(parseTree: InternalNode): Unit = {
     val InternalNode(parsedLines, _, _) = parseTree
     for ((line, lineNumber) <- parsedLines.zipWithIndex) {
       given Context = Context(lineNumber)
-      programLines.append(eval(translateGolfed(line)))
+      programLines.append(eval(Translator.translateGolfed(line)))
     }
   }
 
@@ -133,60 +51,7 @@ object Interpreter {
     val InternalNode(parsedLines, _, _) = parseTree
     for ((line, lineNumber) <- parsedLines.zipWithIndex) {
       given Context = Context(lineNumber)
-      programLines.append(eval(translateExpanded(line)))
-    }
-  }
-
-  def translateGolfed(parseTree: ParseNode): HBLAny = {
-    parseTree match {
-      case InternalNode(children, openParen, closeParen) => {
-        (openParen, closeParen) match {
-          case ("(", ")") => HBLList(children.map(translateGolfed).toVector)
-          // TODO: Do we use ` here, or use ' in both formats?
-          case ("'(", ")") => HBLList(Builtins.quote, HBLList(children.map(translateGolfed).toVector))
-          case ("(", "')") => ???  // TODO: String literals
-          case _ => throw UnknownParenException(s"$openParen $closeParen")
-        }
-      }
-      case LeafNode(Token(atom)) => {
-        atom match {
-          case codepageValues(value) => value
-          case "." => HBLList(Builtins.getLocal, BigInt(1))
-          case "," => HBLList(Builtins.getLocal, BigInt(2))
-          case "'." => HBLList(Builtins.getLocals)
-          case "'," => HBLList(Builtins.getLocal, BigInt(3))
-          case _ => throw TokenException(s"$atom")
-        }
-      }
-    }
-  }
-
-  def translateExpanded(parseTree: ParseNode): HBLAny = {
-    parseTree match {
-      case InternalNode(children, openParen, closeParen) => {
-        (openParen, closeParen) match {
-          case ("(", ")") => HBLList(children.map(translateExpanded).toVector)
-          case ("'(", ")") => HBLList(Builtins.quote, HBLList(children.map(translateExpanded).toVector))
-          case _ => throw UnknownParenException(s"$openParen $closeParen")
-        }
-      }
-      case LeafNode(Token(atom)) => {
-        val intPattern = "-?\\d+".r
-        val numberedArgPattern = "arg([1-9])".r
-        val prevRefPattern = "(\\d+)prev".r
-        atom match {
-          case intPattern() => BigInt(atom)
-          case numberedArgPattern(argnum) => HBLList(Builtins.getLocal, BigInt(argnum))
-          case "arglist" => HBLList(Builtins.getLocals)
-          case "argcount" => HBLList(Builtins.countLocals)
-          case prevRefPattern(offset) => HBLList(Builtins.getPrevLine, offset.toInt)
-          case "prev" => HBLList(Builtins.getPrevLine)
-          case "this" => HBLList(Builtins.getThisLine)
-          case "next" => HBLList(Builtins.getNextLine)
-          case namedBuiltins(builtin) => builtin
-          case _ => throw TokenException(s"$atom")
-        }
-      }
+      programLines.append(eval(Translator.translateExpanded(line)))
     }
   }
 
@@ -215,7 +80,7 @@ object Interpreter {
           // A literal value that's overloaded as a macro with an
           // arity matching the current number of arguments
           // TODO: warn when trying to do this in expanded mode?
-          case Builtins.overloadedBuiltins(overloadedBuiltin) =>
+          case Translator.overloads(overloadedBuiltin) =>
             args.length match {
               case overloadedBuiltin(builtinMacro) => Some(builtinMacro)
               case _ => None
@@ -252,7 +117,7 @@ object Interpreter {
             // A literal value that's overloaded as a function for argtypes
             // matching the types of the current arguments
             // TODO: warn when trying to do this in expanded mode?
-            case Builtins.overloadedBuiltins(overloadedBuiltin) =>
+            case Translator.overloads(overloadedBuiltin) =>
               argVals match {
                 case overloadedBuiltin(builtinFunction) => builtinFunction(argVals)
                 case _ => throw MissingOverloadException(s"$headVal with args ${argVals.mkString(", ")}")
