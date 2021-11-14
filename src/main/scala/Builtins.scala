@@ -382,6 +382,18 @@ object Builtins {
   val zip = HBLFunction("zip", {case Seq(ls1: HBLList, ls2: HBLList) => ls1.zip(ls2)})
   val concat = HBLFunction("concat", {case Seq(ls1: HBLList, ls2: HBLList) => ls1.appendedAll(ls2)})
 
+  // Three-argument (any, any, list) functions
+  val mapRight = HBLFunction("map-right", {
+    case Seq(fn: HBLAny, left: HBLAny, ls: HBLList) =>
+      ls.map(item => Interpreter.callFunction(fn, Seq(left, item)))
+  })
+
+  // Three-argument (any, list, any) functions
+  val mapLeft = HBLFunction("map-left", {
+    case Seq(fn: HBLAny, ls: HBLList, right: HBLAny) =>
+      ls.map(item => Interpreter.callFunction(fn, Seq(item, right)))
+  })
+
   // Variadic functions
   val add = HBLFunction("add", {
     case Seq(x: BigInt, y: BigInt) => x + y

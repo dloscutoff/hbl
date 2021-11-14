@@ -125,6 +125,8 @@ object Translator {
     "drop" -> Builtins.drop,
     "zip" -> Builtins.zip,
     "concat" -> Builtins.concat,
+    "map-left" -> Builtins.mapLeft,
+    "map-right" -> Builtins.mapRight,
     "cons" -> Builtins.cons,
   )
 
@@ -201,9 +203,9 @@ object Translator {
       {
         case Seq(x: BigInt) => Builtins.double
         case Seq(ls: HBLList) => Builtins.tail
-        case Seq(any: BigInt, ls: HBLList) => Builtins.drop
+        case Seq(x: BigInt, ls: HBLList) => Builtins.drop
         case Seq(ls1: HBLList, ls2: HBLList) => Builtins.zip
-        //case Seq(any: HBLAny, ls1: HBLList, ls2: HBLList) => Builtins.zipWith
+        //case Seq(fn: HBLAny, ls1: HBLList, ls2: HBLList) => Builtins.zipWith
       }
     ),
     BigInt(3) -> HBLOverloadedBuiltin(
@@ -214,7 +216,7 @@ object Translator {
         case Seq(x: BigInt) => Builtins.neg
         case Seq(ls: HBLList) => Builtins.reverse
         case Seq(x: BigInt, y: BigInt) => Builtins.lessQ
-        //case Seq(any1: HBLAny, ls: HBLList, any2: HBLAny) => Builtins.mapLeft
+        case Seq(fn: HBLAny, ls: HBLList, any: HBLAny) => Builtins.mapLeft
       }
     ),
     BigInt(4) -> HBLOverloadedBuiltin(
@@ -227,7 +229,6 @@ object Translator {
         case Seq(x: BigInt, y: BigInt) => Builtins.add
         case Seq(ls1: HBLList, ls2: HBLList) => Builtins.concat
         case Seq(x: BigInt, y: BigInt, z: BigInt) => Builtins.add
-        //case Seq(any1: HBLAny, ls: HBLList, any2: HBLAny) => Builtins.mapLeft
       }
     ),
     BigInt(5) -> HBLOverloadedBuiltin(
@@ -238,8 +239,8 @@ object Translator {
         case Seq(ls: HBLList) => Builtins.product
         case Seq(x: BigInt, y: BigInt) => Builtins.mul
         case Seq(ls: HBLList, x: BigInt) => Builtins.repeat
-        case Seq(any: HBLAny, ls: HBLList) => Builtins.map
-        //case Seq(any1: HBLAny, any2: HBLAny, ls: HBLList) => Builtins.mapRight
+        case Seq(fn: HBLAny, ls: HBLList) => Builtins.map
+        case Seq(fn: HBLAny, any: HBLAny, ls: HBLList) => Builtins.mapRight
       }
     ),
     BigInt(6) -> HBLOverloadedBuiltin(
@@ -257,8 +258,8 @@ object Translator {
         case Seq(x: BigInt) => Builtins.abs
         case Seq(ls: HBLList) => Builtins.max
         case Seq(x: BigInt, y: BigInt) => Builtins.div
-        //case Seq(any: HBLAny, ls: HBLList) => Builtins.reduceLeft
-        //case Seq(any1: HBLAny, any2: HBLAny, ls: HBLList) => Builtins.foldLeft
+        //case Seq(fn: HBLAny, ls: HBLList) => Builtins.reduceLeft
+        //case Seq(fn: HBLAny, any: HBLAny, ls: HBLList) => Builtins.foldLeft
       }
     ),
     BigInt(8) -> HBLOverloadedBuiltin(
@@ -276,7 +277,7 @@ object Translator {
         case Seq(x: BigInt) => Builtins.oddQ
         case Seq(ls: HBLList) => Builtins.sort
         case Seq(x: BigInt, y: BigInt) => Builtins.mod
-        case Seq(any: HBLAny, ls: HBLList) => Builtins.filter
+        case Seq(fn: HBLAny, ls: HBLList) => Builtins.filter
       }
     ),
     BigInt(20) -> HBLOverloadedBuiltin(  // TODO: Probably pick a different value
