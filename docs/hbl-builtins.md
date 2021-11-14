@@ -51,12 +51,13 @@ Value: `3` (int)
 
 Callable with:
 
-| Arg types   | Thimble equivalent |
-| ----------- | ------------------ |
-| ()          | [`3prev`](./thimble-builtins.md#line-references)\* |
-| (int)       | [`neg`](./thimble-builtins.md#neg) |
-| (list)      | [`reverse`](./thimble-builtins.md#reverse) |
-| (int int)   | [`less?`](./thimble-builtins.md#less) |
+| Arg types      | Thimble equivalent |
+| -------------- | ------------------ |
+| ()             | [`3prev`](./thimble-builtins.md#line-references)\* |
+| (int)          | [`neg`](./thimble-builtins.md#neg) |
+| (list)         | [`reverse`](./thimble-builtins.md#reverse) |
+| (int int)      | [`less?`](./thimble-builtins.md#less) |
+| (any list any) | [`map-left`](./thimble-builtins.md#map-left) |
 
 \* Used as a magic value, not called as a 0-argument macro
 
@@ -83,13 +84,14 @@ Value: `5` (int)
 
 Callable with:
 
-| Arg types   | Thimble equivalent |
-| ----------- | ------------------ |
-| ()          | [`5prev`](./thimble-builtins.md#line-references)\* |
-| (list)      | [`product`](./thimble-builtins.md#product) |
-| (int int)   | [`mul`](./thimble-builtins.md#mul) |
-| (list int)  | [`repeat`](./thimble-builtins.md#repeat) |
-| (any list)  | [`map`](./thimble-builtins.md#map) |
+| Arg types      | Thimble equivalent |
+| -------------- | ------------------ |
+| ()             | [`5prev`](./thimble-builtins.md#line-references)\* |
+| (list)         | [`product`](./thimble-builtins.md#product) |
+| (int int)      | [`mul`](./thimble-builtins.md#mul) |
+| (list int)     | [`repeat`](./thimble-builtins.md#repeat) |
+| (any list)     | [`map`](./thimble-builtins.md#map) |
+| (any any list) | [`map-right`](./thimble-builtins.md#map-right) |
 
 \* Used as a magic value, not called as a 0-argument macro
 

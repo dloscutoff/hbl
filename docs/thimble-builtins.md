@@ -190,7 +190,7 @@ Takes an integer N and a list; returns the list with the first N elements remove
 
 ### `filter`
 
-Takes a function and a list; returns a new list consisting of the elements from the second argument that return a truthy value when passed through the function.
+Takes a 1-argument function and a list; returns a new list consisting of the elements from the second argument that return a truthy value when passed through the function.
 
 ### `less?`
 
@@ -198,7 +198,7 @@ Takes two integers; returns 1 if the first argument is less than the second argu
 
 ### `map`
 
-Takes a function and a list; returns a new list containing the results of passing each element of the second argument through the function.
+Takes a 1-argument function and a list; returns a new list containing the results of passing each element of the second argument through the function.
 
 ### `mod`
 
@@ -245,3 +245,11 @@ Takes either two or three integers and returns their sum.
 ### `cons`
 
 Takes one or more values and a list; returns a new list with the given values, in order, added to the beginning of the argument list.
+
+### `map-left`
+
+Takes a 2-argument function, a list, and another value; pairs each element of the second argument with the third argument, passes each pair through the function, and returns a new list containing the results.
+
+### `map-right`
+
+Takes a 2-argument function, a value, and a list; pairs the second argument with each element of the third argument, passes each pair through the function, and returns a new list containing the results.
