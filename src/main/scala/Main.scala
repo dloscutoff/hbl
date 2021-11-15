@@ -18,9 +18,6 @@
 
 package hbl
 
-import scala.io.Source
-import java.nio.file.{Files, Paths}
-
 enum FileFormat {
   case Raw
   case ASCII
@@ -32,62 +29,89 @@ object Main {
     if (args.length >= 1) {
       val debug = false
       val filename = args.head
-      try {
-        val argVals = processArgs(args.tail)
-        if (debug) {
-          println(s"> Arguments: ${argVals.mkString(", ")}")
-        }
-        val (code, format) = readCodeFromFile(filename)
-        format match {
-          case FileFormat.Raw | FileFormat.ASCII => {
-            val parseTree = Parser.parseGolfed(code)
-            if (debug) {
-              println("> Parsing from golfed format:")
-              println(parseTree)
-            }
-            Interpreter.loadGolfedProgram(parseTree)
-          }
-          case FileFormat.Thimble => {
-            val parseTree = Parser.parseExpanded(code)
-            if (debug) {
-              println("> Parsing from ungolfed/Thimble format:")
-              println(parseTree)
-            }
-            Interpreter.loadExpandedProgram(parseTree)
-          }
-        }
-        if (debug) {
-          println(s"> Found ${Interpreter.programLines.length} definitions:")
-          Interpreter.programLines.foreach(println)
-          println("> Executing...")
-          println("-".repeat(75))
-        }
-        Interpreter.runProgram(argVals)
+      val programArgs = args.tail
+      val (code, format) = try {
+        FileReader.readCodeFromFile(filename)
       } catch {
-        case fileNotFoundException: (java.io.FileNotFoundException | java.nio.file.NoSuchFileException) =>
-          println(s"File $filename not found.")
-        case unbalancedException: UnbalancedParensException =>
-          println(s"Parsing error: ${unbalancedException.getMessage}")
-          println("Unbalanced parentheses are not allowed in Thimble expressions")
-        case parenException: UnknownParenException =>
-          println(s"Unrecognized parenthesis combination: ${parenException.getMessage}")
-        case tokenException: TokenException =>
-          println(s"Unrecognized symbol: ${tokenException.getMessage}")
-        case missingOverloadException: MissingOverloadException =>
-          println(s"Missing overload for ${missingOverloadException.getMessage}")
-        case notCallableException: NotCallableException =>
-          println(s"Non-callable value ${notCallableException.getMessage} cannot be the head of an expression")
-        case argumentException: ArgumentException =>
-          println(argumentException.getMessage)
-        case topLevelException: TopLevelException =>
-          println(topLevelException.getMessage)
-        case lineReferenceException: LineReferenceException =>
-          println(lineReferenceException.getMessage)
-        case arithmeticException: ArithmeticException =>
-          println(s"Arithmetic error: ${arithmeticException.getMessage}")
-        case stackOverflowError: StackOverflowError =>
-          println("Stack overflow (possibly your program isn't using tail recursion?)")
+        case fileReadException: FileReadException =>
+          println(fileReadException.getMessage)
+          return
       }
+      run(code, format, programArgs, debug)
+    }
+  }
+
+  def run(code: String, format: FileFormat, args: Array[String], debug: Boolean = false): Unit = {
+    val argVals = try {
+      processArgs(args)
+    } catch {
+      case argumentException: ArgumentException =>
+        println(argumentException.getMessage)
+        return
+      case unbalancedException: UnbalancedParensException =>
+        println(s"Error while parsing program arguments: ${unbalancedException.getMessage}")
+        return
+      case parenException: UnknownParenException =>
+        println(s"Unrecognized parenthesis combination in program argument: ${parenException.getMessage}")
+        return
+      case tokenException: TokenException =>
+        println(s"Unrecognized symbol in program argument: ${tokenException.getMessage}")
+        return
+    }
+    if (debug) {
+      println(s"> Arguments: ${argVals.mkString(", ")}")
+    }
+    try {
+      format match {
+        case FileFormat.Raw | FileFormat.ASCII => {
+          val parseTree = Parser.parseGolfed(code)
+          if (debug) {
+            println("> Parsing from golfed format:")
+            println(parseTree)
+          }
+          Interpreter.loadGolfedProgram(parseTree)
+        }
+        case FileFormat.Thimble => {
+          val parseTree = Parser.parseExpanded(code)
+          if (debug) {
+            println("> Parsing from ungolfed/Thimble format:")
+            println(parseTree)
+          }
+          Interpreter.loadExpandedProgram(parseTree)
+        }
+      }
+      if (debug) {
+        println(s"> Found ${Interpreter.programLines.length} definitions:")
+        Interpreter.programLines.foreach(println)
+        println("> Executing...")
+        println("-".repeat(75))
+      }
+      Interpreter.runProgram(argVals) match {
+        case Some(result) => println(result)
+        case None =>
+      }
+    } catch {
+      case unbalancedException: UnbalancedParensException =>
+        println(s"Parsing error: ${unbalancedException.getMessage}")
+        println("Unbalanced parentheses are not allowed in Thimble expressions")
+      case parenException: UnknownParenException =>
+        println(s"Unrecognized parenthesis combination: ${parenException.getMessage}")
+      case tokenException: TokenException =>
+        println(s"Unrecognized symbol: ${tokenException.getMessage}")
+      case missingOverloadException: MissingOverloadException =>
+        println(s"Missing overload for ${missingOverloadException.getMessage}")
+      case notCallableException: NotCallableException =>
+        println(s"Non-callable value ${notCallableException.getMessage} cannot be the head of an expression")
+      case argumentException: ArgumentException =>
+        println(argumentException.getMessage)
+      case topLevelException: TopLevelException =>
+        println(topLevelException.getMessage)
+      case lineReferenceException: LineReferenceException =>
+        println(lineReferenceException.getMessage)
+      case arithmeticException: ArithmeticException =>
+        println(s"Arithmetic error: ${arithmeticException.getMessage}")
+      case stackOverflowError: StackOverflowError =>
+        println("Stack overflow (possibly your program isn't using tail recursion?)")
     }
   }
 
@@ -96,29 +120,8 @@ object Main {
       val InternalNode(parsedArg, _, _) = Parser.parseExpanded(commandLineArg)
       parsedArg match {
         case List(parsedExpr) => Translator.translateExpanded(parsedExpr)
-        case _ => throw ArgumentException(s"Incorrectly formatted expression in command-line argument: $commandLineArg")
+        case _ => throw ArgumentException(s"Incorrectly formatted expression in program argument: $commandLineArg")
       }
     }
-  }
-
-  def readCodeFromFile(filename: String): (String, FileFormat) = {
-    val extensionPattern = ".*\\.(\\w+)".r
-    val format = filename match {
-      case extensionPattern("hb") => FileFormat.Raw
-      case extensionPattern("hbl") => FileFormat.ASCII
-      case extensionPattern("thbl") => FileFormat.Thimble
-      case _ => FileFormat.ASCII  // TODO: How to handle unrecognized file format?
-    }
-    val code = if (format == FileFormat.Raw) {
-      val inFile = Paths.get(filename)
-      val byteArray = Files.readAllBytes(inFile)
-      Parser.fromBytes(byteArray)
-    } else {
-      val inFile = Source.fromFile(filename)
-      try {
-        inFile.mkString
-      } finally inFile.close()
-    }
-    (code, format)
   }
 }

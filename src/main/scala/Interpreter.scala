@@ -55,16 +55,16 @@ object Interpreter {
     }
   }
 
-  def runProgram(argVals: Seq[HBLAny] = List()): Unit = {
+  def runProgram(argVals: Seq[HBLAny] = List()): Option[HBLAny] = {
     if (!programLines.isEmpty) {
       programLines.last match {
         case mainFn: HBLList => {
           given Context = Context(programLines.length - 1, mainFn, argVals)
-          println(eval(programLines.last))
+          Some(eval(programLines.last))
         }
-        case _ => println(programLines.last)
+        case _ => Some(programLines.last)
       }
-    }
+    } else None
   }
 
   def eval(expr: HBLAny)(using context: Context): HBLAny = {
