@@ -8,6 +8,3 @@ version := hblVersion
 scalaVersion := "3.0.2"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
-
-// This is an application with a main method
-scalaJSUseMainModuleInitializer := true

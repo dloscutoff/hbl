@@ -18,6 +18,9 @@
 
 package hbl
 
+import scala.scalajs.js.Array
+import scala.scalajs.js.annotation.JSExportTopLevel
+
 enum FileFormat {
   case Raw
   case ASCII
@@ -25,15 +28,15 @@ enum FileFormat {
 }
 
 object Main {
-  def main(args: Array[String]): Unit = {
-    if (args.length >= 1) {
-    } else {
-      val debug = true
-      val testCode= "'(1to arg1)"
-      val format = FileFormat.Thimble
-      val testArgs = Array[String]("16")
-      run(testCode, format, testArgs, debug)
+  @JSExportTopLevel("runHBL")
+  def run(code: String, formatSpecifier: String, args: Array[String], debug: Boolean): Unit = {
+    val format = formatSpecifier match {
+      case "raw" => FileFormat.Raw
+      case "hbl" => FileFormat.ASCII
+      case "thimble" => FileFormat.Thimble
+      case _ => FileFormat.ASCII
     }
+    run(code, format, args, debug)
   }
 
   def run(code: String, format: FileFormat, args: Array[String], debug: Boolean = false): Unit = {
