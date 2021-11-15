@@ -27,17 +27,12 @@ enum FileFormat {
 object Main {
   def main(args: Array[String]): Unit = {
     if (args.length >= 1) {
-      val debug = false
-      val filename = args.head
-      val programArgs = args.tail
-      val (code, format) = try {
-        FileReader.readCodeFromFile(filename)
-      } catch {
-        case fileReadException: FileReadException =>
-          println(fileReadException.getMessage)
-          return
-      }
-      run(code, format, programArgs, debug)
+    } else {
+      val debug = true
+      val testCode= "'(1to arg1)"
+      val format = FileFormat.Thimble
+      val testArgs = Array[String]("16")
+      run(testCode, format, testArgs, debug)
     }
   }
 
