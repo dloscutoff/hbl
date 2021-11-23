@@ -37,29 +37,15 @@ object Main {
           println(fileReadException.getMessage)
           return
       }
-      run(code, format, programArgs, debug)
+      run(code, format, programArgs, debug).foreach(println)
     }
   }
 
-  def run(code: String, format: FileFormat, args: Array[String], debug: Boolean = false): Unit = {
-    val argVals = try {
-      processArgs(args)
-    } catch {
-      case argumentException: ArgumentException =>
-        println(argumentException.getMessage)
-        return
-      case unbalancedException: UnbalancedParensException =>
-        println(s"Error while parsing program arguments: ${unbalancedException.getMessage}")
-        return
-      case parenException: UnknownParenException =>
-        println(s"Unrecognized parenthesis combination in program argument: ${parenException.getMessage}")
-        return
-      case tokenException: TokenException =>
-        println(s"Unrecognized symbol in program argument: ${tokenException.getMessage}")
-        return
-    }
+  def run(code: String, format: FileFormat, args: Array[String], debug: Boolean = false): Option[HBLAny] = {
+    val argVals = processArgs(args)
+    if (argVals.isEmpty) then return None
     if (debug) {
-      println(s"> Arguments: ${argVals.mkString(", ")}")
+      println(s"> Arguments: ${argVals.get.mkString(", ")}")
     }
     try {
       format match {
@@ -86,10 +72,7 @@ object Main {
         println("> Executing...")
         println("-".repeat(75))
       }
-      Interpreter.runProgram(argVals) match {
-        case Some(result) => println(result)
-        case None =>
-      }
+      return Interpreter.runProgram(argVals.get)
     } catch {
       case unbalancedException: UnbalancedParensException =>
         println(s"Parsing error: ${unbalancedException.getMessage}")
@@ -113,15 +96,28 @@ object Main {
       case stackOverflowError: StackOverflowError =>
         println("Stack overflow (possibly your program isn't using tail recursion?)")
     }
+    None
   }
 
-  def processArgs(commandLineArgs: Array[String]): Seq[HBLAny] = {
-    for (commandLineArg <- commandLineArgs.toList) yield {
-      val InternalNode(parsedArg, _, _) = Parser.parseExpanded(commandLineArg)
-      parsedArg match {
-        case List(parsedExpr) => Translator.translateExpanded(parsedExpr)
-        case _ => throw ArgumentException(s"Incorrectly formatted expression in program argument: $commandLineArg")
-      }
+  def processArgs(commandLineArgs: Array[String]): Option[Seq[HBLAny]] = {
+    try {
+      return Some(commandLineArgs.map(commandLineArg => {
+        val InternalNode(parsedArg, _, _) = Parser.parseExpanded(commandLineArg)
+        parsedArg match {
+          case List(parsedExpr) => Translator.translateExpanded(parsedExpr)
+          case _ => throw ArgumentException(s"$commandLineArg")
+        }
+      }).toIndexedSeq)
+    } catch {
+      case argumentException: ArgumentException =>
+        println(s"Incorrectly formatted expression in program argument: ${argumentException.getMessage}")
+      case unbalancedException: UnbalancedParensException =>
+        println(s"Error while parsing program arguments: ${unbalancedException.getMessage}")
+      case parenException: UnknownParenException =>
+        println(s"Unrecognized parenthesis combination in program argument: ${parenException.getMessage}")
+      case tokenException: TokenException =>
+        println(s"Unrecognized symbol in program argument: ${tokenException.getMessage}")
     }
+    None
   }
 }
