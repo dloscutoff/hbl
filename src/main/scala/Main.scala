@@ -42,61 +42,64 @@ object Main {
   }
 
   def run(code: String, format: FileFormat, args: Array[String], debug: Boolean = false): Option[HBLAny] = {
-    val argVals = processArgs(args)
-    if (argVals.isEmpty) then return None
-    if (debug) {
-      println(s"> Arguments: ${argVals.get.mkString(", ")}")
-    }
-    try {
-      format match {
-        case FileFormat.Raw | FileFormat.ASCII => {
-          val parseTree = Parser.parseGolfed(code)
-          if (debug) {
-            println("> Parsing from golfed format:")
-            println(parseTree)
-          }
-          Interpreter.loadGolfedProgram(parseTree)
+    processArgs(args) match {
+      case Some(argVals) => {
+        if (debug) {
+          println(s"> Arguments: ${argVals.mkString(", ")}")
         }
-        case FileFormat.Thimble => {
-          val parseTree = Parser.parseExpanded(code)
-          if (debug) {
-            println("> Parsing from ungolfed/Thimble format:")
-            println(parseTree)
+        try {
+          format match {
+            case FileFormat.Raw | FileFormat.ASCII => {
+              val parseTree = Parser.parseGolfed(code)
+              if (debug) {
+                println("> Parsing from golfed format:")
+                println(parseTree)
+              }
+              Interpreter.loadGolfedProgram(parseTree)
+            }
+            case FileFormat.Thimble => {
+              val parseTree = Parser.parseExpanded(code)
+              if (debug) {
+                println("> Parsing from ungolfed/Thimble format:")
+                println(parseTree)
+              }
+              Interpreter.loadExpandedProgram(parseTree)
+            }
           }
-          Interpreter.loadExpandedProgram(parseTree)
+          if (debug) {
+            println(s"> Found ${Interpreter.programLines.length} definitions:")
+            Interpreter.programLines.foreach(println)
+            println("> Executing...")
+            println("-".repeat(75))
+          }
+          return Interpreter.runProgram(argVals)
+        } catch {
+          case unbalancedException: UnbalancedParensException =>
+            println(s"Parsing error: ${unbalancedException.getMessage}")
+            println("Unbalanced parentheses are not allowed in Thimble expressions")
+          case parenException: UnknownParenException =>
+            println(s"Unrecognized parenthesis combination: ${parenException.getMessage}")
+          case tokenException: TokenException =>
+            println(s"Unrecognized symbol: ${tokenException.getMessage}")
+          case missingOverloadException: MissingOverloadException =>
+            println(s"Missing overload for ${missingOverloadException.getMessage}")
+          case notCallableException: NotCallableException =>
+            println(s"Non-callable value ${notCallableException.getMessage} cannot be the head of an expression")
+          case argumentException: ArgumentException =>
+            println(argumentException.getMessage)
+          case topLevelException: TopLevelException =>
+            println(topLevelException.getMessage)
+          case lineReferenceException: LineReferenceException =>
+            println(lineReferenceException.getMessage)
+          case arithmeticException: ArithmeticException =>
+            println(s"Arithmetic error: ${arithmeticException.getMessage}")
+          case stackOverflowError: StackOverflowError =>
+            println("Stack overflow (possibly your program isn't using tail recursion?)")
         }
+        None
       }
-      if (debug) {
-        println(s"> Found ${Interpreter.programLines.length} definitions:")
-        Interpreter.programLines.foreach(println)
-        println("> Executing...")
-        println("-".repeat(75))
-      }
-      return Interpreter.runProgram(argVals.get)
-    } catch {
-      case unbalancedException: UnbalancedParensException =>
-        println(s"Parsing error: ${unbalancedException.getMessage}")
-        println("Unbalanced parentheses are not allowed in Thimble expressions")
-      case parenException: UnknownParenException =>
-        println(s"Unrecognized parenthesis combination: ${parenException.getMessage}")
-      case tokenException: TokenException =>
-        println(s"Unrecognized symbol: ${tokenException.getMessage}")
-      case missingOverloadException: MissingOverloadException =>
-        println(s"Missing overload for ${missingOverloadException.getMessage}")
-      case notCallableException: NotCallableException =>
-        println(s"Non-callable value ${notCallableException.getMessage} cannot be the head of an expression")
-      case argumentException: ArgumentException =>
-        println(argumentException.getMessage)
-      case topLevelException: TopLevelException =>
-        println(topLevelException.getMessage)
-      case lineReferenceException: LineReferenceException =>
-        println(lineReferenceException.getMessage)
-      case arithmeticException: ArithmeticException =>
-        println(s"Arithmetic error: ${arithmeticException.getMessage}")
-      case stackOverflowError: StackOverflowError =>
-        println("Stack overflow (possibly your program isn't using tail recursion?)")
+      case None => None
     }
-    None
   }
 
   def processArgs(commandLineArgs: Array[String]): Option[Seq[HBLAny]] = {
