@@ -29,97 +29,99 @@ enum FileFormat {
 
 object Main {
   @JSExportTopLevel("runHBL")
-  def run(code: String, formatSpecifier: String, args: Array[String], debug: Boolean): Unit = {
+  def run(code: String, formatSpecifier: String, args: Array[String], debug: Boolean): String = {
     val format = formatSpecifier match {
       case "raw" => FileFormat.Raw
       case "hbl" => FileFormat.ASCII
       case "thimble" => FileFormat.Thimble
       case _ => FileFormat.ASCII
     }
-    run(code, format, args, debug)
+    run(code, format, args, debug) match {
+      case Some(value) => value.toString
+      case None => ""
+    }
   }
 
-  def run(code: String, format: FileFormat, args: Array[String], debug: Boolean = false): Unit = {
-    val argVals = try {
-      processArgs(args)
+  def run(code: String, format: FileFormat, args: Array[String], debug: Boolean = false): Option[HBLAny] = {
+    processArgs(args) match {
+      case Some(argVals) => {
+        if (debug) {
+          println(s"> Arguments: ${argVals.mkString(", ")}")
+        }
+        try {
+          format match {
+            case FileFormat.Raw | FileFormat.ASCII => {
+              val parseTree = Parser.parseGolfed(code)
+              if (debug) {
+                println("> Parsing from golfed format:")
+                println(parseTree)
+              }
+              Interpreter.loadGolfedProgram(parseTree)
+            }
+            case FileFormat.Thimble => {
+              val parseTree = Parser.parseExpanded(code)
+              if (debug) {
+                println("> Parsing from ungolfed/Thimble format:")
+                println(parseTree)
+              }
+              Interpreter.loadExpandedProgram(parseTree)
+            }
+          }
+          if (debug) {
+            println(s"> Found ${Interpreter.programLines.length} definitions:")
+            Interpreter.programLines.foreach(println)
+            println("> Executing...")
+            println("-".repeat(75))
+          }
+          return Interpreter.runProgram(argVals)
+        } catch {
+          case unbalancedException: UnbalancedParensException =>
+            println(s"Parsing error: ${unbalancedException.getMessage}")
+            println("Unbalanced parentheses are not allowed in Thimble expressions")
+          case parenException: UnknownParenException =>
+            println(s"Unrecognized parenthesis combination: ${parenException.getMessage}")
+          case tokenException: TokenException =>
+            println(s"Unrecognized symbol: ${tokenException.getMessage}")
+          case missingOverloadException: MissingOverloadException =>
+            println(s"Missing overload for ${missingOverloadException.getMessage}")
+          case notCallableException: NotCallableException =>
+            println(s"Non-callable value ${notCallableException.getMessage} cannot be the head of an expression")
+          case argumentException: ArgumentException =>
+            println(argumentException.getMessage)
+          case topLevelException: TopLevelException =>
+            println(topLevelException.getMessage)
+          case lineReferenceException: LineReferenceException =>
+            println(lineReferenceException.getMessage)
+          case arithmeticException: ArithmeticException =>
+            println(s"Arithmetic error: ${arithmeticException.getMessage}")
+          case stackOverflowError: StackOverflowError =>
+            println("Stack overflow (possibly your program isn't using tail recursion?)")
+        }
+        None
+      }
+      case None => None
+    }
+  }
+
+  def processArgs(commandLineArgs: Array[String]): Option[Seq[HBLAny]] = {
+    try {
+      return Some(commandLineArgs.map(commandLineArg => {
+        val InternalNode(parsedArg, _, _) = Parser.parseExpanded(commandLineArg)
+        parsedArg match {
+          case List(parsedExpr) => Translator.translateExpanded(parsedExpr)
+          case _ => throw ArgumentException(s"$commandLineArg")
+        }
+      }).toIndexedSeq)
     } catch {
       case argumentException: ArgumentException =>
-        println(argumentException.getMessage)
-        return
+        println(s"Incorrectly formatted expression in program argument: ${argumentException.getMessage}")
       case unbalancedException: UnbalancedParensException =>
         println(s"Error while parsing program arguments: ${unbalancedException.getMessage}")
-        return
       case parenException: UnknownParenException =>
         println(s"Unrecognized parenthesis combination in program argument: ${parenException.getMessage}")
-        return
       case tokenException: TokenException =>
         println(s"Unrecognized symbol in program argument: ${tokenException.getMessage}")
-        return
     }
-    if (debug) {
-      println(s"> Arguments: ${argVals.mkString(", ")}")
-    }
-    try {
-      format match {
-        case FileFormat.Raw | FileFormat.ASCII => {
-          val parseTree = Parser.parseGolfed(code)
-          if (debug) {
-            println("> Parsing from golfed format:")
-            println(parseTree)
-          }
-          Interpreter.loadGolfedProgram(parseTree)
-        }
-        case FileFormat.Thimble => {
-          val parseTree = Parser.parseExpanded(code)
-          if (debug) {
-            println("> Parsing from ungolfed/Thimble format:")
-            println(parseTree)
-          }
-          Interpreter.loadExpandedProgram(parseTree)
-        }
-      }
-      if (debug) {
-        println(s"> Found ${Interpreter.programLines.length} definitions:")
-        Interpreter.programLines.foreach(println)
-        println("> Executing...")
-        println("-".repeat(75))
-      }
-      Interpreter.runProgram(argVals) match {
-        case Some(result) => println(result)
-        case None =>
-      }
-    } catch {
-      case unbalancedException: UnbalancedParensException =>
-        println(s"Parsing error: ${unbalancedException.getMessage}")
-        println("Unbalanced parentheses are not allowed in Thimble expressions")
-      case parenException: UnknownParenException =>
-        println(s"Unrecognized parenthesis combination: ${parenException.getMessage}")
-      case tokenException: TokenException =>
-        println(s"Unrecognized symbol: ${tokenException.getMessage}")
-      case missingOverloadException: MissingOverloadException =>
-        println(s"Missing overload for ${missingOverloadException.getMessage}")
-      case notCallableException: NotCallableException =>
-        println(s"Non-callable value ${notCallableException.getMessage} cannot be the head of an expression")
-      case argumentException: ArgumentException =>
-        println(argumentException.getMessage)
-      case topLevelException: TopLevelException =>
-        println(topLevelException.getMessage)
-      case lineReferenceException: LineReferenceException =>
-        println(lineReferenceException.getMessage)
-      case arithmeticException: ArithmeticException =>
-        println(s"Arithmetic error: ${arithmeticException.getMessage}")
-      case stackOverflowError: StackOverflowError =>
-        println("Stack overflow (possibly your program isn't using tail recursion?)")
-    }
-  }
-
-  def processArgs(commandLineArgs: Array[String]): Seq[HBLAny] = {
-    for (commandLineArg <- commandLineArgs.toList) yield {
-      val InternalNode(parsedArg, _, _) = Parser.parseExpanded(commandLineArg)
-      parsedArg match {
-        case List(parsedExpr) => Translator.translateExpanded(parsedExpr)
-        case _ => throw ArgumentException(s"Incorrectly formatted expression in program argument: $commandLineArg")
-      }
-    }
+    None
   }
 }
