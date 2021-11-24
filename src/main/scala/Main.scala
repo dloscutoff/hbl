@@ -36,6 +36,7 @@ object Main {
       case "thimble" => FileFormat.Thimble
       case _ => FileFormat.ASCII
     }
+    Interpreter.programLines.clear()
     run(code, format, args, debug) match {
       case Some(value) => value.toString
       case None => ""
