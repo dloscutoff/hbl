@@ -1,11 +1,51 @@
+<!--
+ * Half-Byte Lisp interpreter
+ * Copyright (C) 2021 David Loscutoff <https://github.com/dloscutoff>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
     <title>HBL interpreter</title>
+    <link rel="stylesheet" href="style/main.css" />
+    <script type="text/javascript" src="js/main.js"></script>
+    <!-- Include Scala.js compiled code -->
+    <script type="text/javascript" src="js/hbl-0.1.2.js"></script>
   </head>
   <body>
-    <!-- Include Scala.js compiled code -->
-    <script type="text/javascript" src="./target/scala-3.0.2/half-byte-lisp-fastopt/main.js"></script>
+    <h1>HBL</h1>
+    <div class="section" id="codeSection">
+        <h3>Code</h3>
+        <textarea id="code" rows="5"></textarea>
+        <span>Format:</span>
+        <select id="code-format">
+            <option selected>HBL</option>
+            <option>Thimble</option>
+        </select>
+    </div>
+    <div class="section" id="argsSection">
+        <h3>Arguments (one per line)</h3>
+        <textarea id="args" rows="5"></textarea>
+    </div>
+    <input type="button" class="button" id="runBtn" onclick="runCode()" value="Run"></input>
+    <hr>
+    <div class="section" id="resultSection">
+        <h3>Result</h3>
+        <textarea id="result" rows="5" readonly="true"></textarea>
+    </div>
   </body>
 </html>
