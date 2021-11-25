@@ -4,6 +4,8 @@ HBL is a Lisp dialect designed for code golf. It uses a codepage with 16 charact
 
 ## Getting started
 
+The easiest way to try HBL is in the [online interpreter](https://dloscutoff.github.io/hbl).
+
 HBL is implemented in Scala 3. If you have Scala 3 with the sbt build tool installed, you can use the following steps to run HBL code:
 
 - Clone the HBL repository
