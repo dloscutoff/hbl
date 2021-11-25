@@ -17,16 +17,83 @@
  */
 
 function runCode() {
-    var codeArea = document.getElementById("code");
-    var codeFormatSelect = document.getElementById("code-format");
-    var argsArea = document.getElementById("args");
-    var resultArea = document.getElementById("result");
-    var code = codeArea.value;
-    var codeFormat = codeFormatSelect.value.toLowerCase();
-    var args = argsArea.value ? argsArea.value.split("\n") : [];
-    var debug = false;
+    var codeArea = document.getElementById("code"),
+        codeFormatSelect = document.getElementById("code-format"),
+        argsArea = document.getElementById("args"),
+        resultArea = document.getElementById("result");
+    var code = codeArea.value,
+        codeFormat = codeFormatSelect.value.toLowerCase(),
+        args = argsArea.value ? argsArea.value.split("\n") : [],
+        debug = false;
     var result = runHBL(code, codeFormat, args, debug);
     resultArea.value = result;
+}
+
+function urlDecode(value) {
+    try {
+        return atob(value.replaceAll("_", "="));
+    } catch (error) {
+        console.log("Error while decoding " + value);
+        console.log(error);
+        return "";
+    }
+}
+
+function urlEncode(value) {
+    try {
+        return btoa(value).replaceAll("=", "_");
+    } catch (error) {
+        console.log("Error while encoding " + value);
+        console.log(error);
+        return "";
+    }
+}
+
+function generateURL() {
+    var codeArea = document.getElementById("code"),
+        codeFormatSelect = document.getElementById("code-format"),
+        argsArea = document.getElementById("args");
+    var params = [
+        ["f", codeFormatSelect.selectedIndex],
+        ["p", urlEncode(codeArea.value)],
+        ["a", urlEncode(argsArea.value)],
+    ].filter(([key, value]) => value !== "").map(pair => pair.join("="));
+    var queryString = "?" + params.join("&");
+    return location.origin + location.pathname + queryString;
+}
+
+function loadURL() {
+    var codeArea = document.getElementById("code"),
+        codeFormatSelect = document.getElementById("code-format"),
+        argsArea = document.getElementById("args");
+    var queryString = location.search.slice(1);
+    
+    for (const param of queryString.split("&")) {
+        var key;
+        var value;
+        [key, value] = param.split("=");
+        if (key === "f") {
+            codeFormatSelect.selectedIndex = value;
+            if (codeFormatSelect.selectedIndex === -1) {
+                // Not a valid selection; select the default format instead
+                codeFormatSelect.selectedIndex = 0;
+            }
+        } else if (key === "p") {
+            codeArea.value = urlDecode(value);
+        } else if (key === "a") {
+            argsArea.value = urlDecode(value);
+        }
+    }
+}
+
+function copyPermalink() {
+    var permalink = generateURL();
+    // Copy the permalink to the clipboard, and then (whether the copy succeeded or not)
+    // go to the permalink URL
+    navigator.clipboard.writeText(permalink).then(
+        () => location.assign(permalink),
+        () => location.assign(permalink)
+    );
 }
 
 window.onload = function() {
@@ -35,4 +102,5 @@ window.onload = function() {
             runCode();
         }
     };
+    loadURL();
 }

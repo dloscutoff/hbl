@@ -44,9 +44,17 @@ textarea {
     border: solid;
     border-width: 1px;
     border-color: #444;
-    background-color: #6c6;
+    margin: 0px 4px 4px;
     padding: 4px 8px;
     text-align: center;
     font-size: 16px;
     font-weight: bold;
+}
+
+.green {
+    background-color: #6c6;
+}
+
+.blue {
+    background-color: #78f;
 }
