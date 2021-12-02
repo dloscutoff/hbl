@@ -21,7 +21,7 @@ h1 {
     font-family: Georgia, Times New Roman, serif;
 }
 
-h3, span, select, .button {
+h3, div#topLinks, span, select, .button {
     font-family: Trebuchet MS, Tahoma, Arial, sans serif;
 }
 
@@ -29,9 +29,24 @@ h3 {
     margin: 4px;
 }
 
+#topLinks {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    text-align: right;
+}
+
+#topLinks > a {
+    padding: 0px 8px;
+    color: #22a;
+    text-decoration: none;
+}
+
 textarea {
+    margin: 4px 0px;
     width: 100%;
     resize: vertical;
+    box-sizing: border-box;
     font-family: Courier New, monospace;
     font-size: 16px;
 }

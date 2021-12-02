@@ -27,10 +27,14 @@
     <script type="text/javascript" src="js/hbl-0.1.2.js"></script>
   </head>
   <body>
+    <div id="topLinks">
+        <a href="https://github.com/dloscutoff/hbl">GitHub</a>
+        <a href="https://github.com/dloscutoff/hbl/tree/main/docs#readme">Docs</a>
+    </div>
     <h1>HBL</h1>
     <div class="section" id="codeSection">
         <h3>Code</h3>
-        <textarea id="code" rows="5"></textarea>
+        <textarea id="code" rows="4"></textarea>
         <span>Format:</span>
         <select id="code-format">
             <option selected>HBL</option>
@@ -39,13 +43,13 @@
     </div>
     <div class="section" id="argsSection">
         <h3>Arguments (one per line)</h3>
-        <textarea id="args" rows="5"></textarea>
+        <textarea id="args" rows="4"></textarea>
     </div>
     <input type="button" class="button green" id="runBtn" onclick="runCode()" value="Run"></input>
     <input type="button" class="button blue" id="permalinkBtn" onclick="copyPermalink()" value="Permalink"></input>
     <div class="section" id="resultSection">
         <h3>Result</h3>
-        <textarea id="result" rows="5" readonly="true"></textarea>
+        <textarea id="result" rows="4" readonly="true"></textarea>
     </div>
   </body>
 </html>
