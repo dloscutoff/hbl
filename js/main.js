@@ -27,6 +27,7 @@ function runCode() {
         debug = false;
     var result = runHBL(code, codeFormat, args, debug);
     resultArea.value = result;
+    generateURL();
 }
 
 function urlDecode(value) {
@@ -59,7 +60,12 @@ function generateURL() {
         ["a", urlEncode(argsArea.value)],
     ].filter(([key, value]) => value !== "").map(pair => pair.join("="));
     var queryString = "?" + params.join("&");
-    return location.origin + location.pathname + queryString;
+    var url = location.origin + location.pathname + queryString;
+    // Add a history entry if the URL has changed
+    if (url !== location.href) {
+        history.pushState(params, "", url);
+    }
+    return url;
 }
 
 function loadURL() {
@@ -87,16 +93,18 @@ function loadURL() {
 }
 
 function copyPermalink() {
-    var permalink = generateURL();
-    // Copy the permalink to the clipboard, and then (whether the copy succeeded or not)
-    // go to the permalink URL
-    navigator.clipboard.writeText(permalink).then(
-        () => location.assign(permalink),
-        () => location.assign(permalink)
-    );
+    // Generate permalink and copy it to the clipboard
+    navigator.clipboard.writeText(generateURL());
+}
+
+window.onpopstate = function() {
+    var resultArea = document.getElementById("result");
+    resultArea.value = "";
+    loadURL();
 }
 
 window.onload = function() {
+    // Set up keyboard shortcut Ctrl-Enter to run code
     document.onkeyup = function(e) {
         if (e.key === "Enter" && e.ctrlKey) {
             runCode();
