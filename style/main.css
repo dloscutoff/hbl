@@ -74,3 +74,8 @@ textarea {
 .blue {
     background-color: #78f;
 }
+
+.button:disabled, .button[disabled] {
+    cursor: initial;
+    background-color: #aaa;
+}

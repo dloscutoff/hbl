@@ -20,14 +20,19 @@ function runCode() {
     var codeArea = document.getElementById("code"),
         codeFormatSelect = document.getElementById("code-format"),
         argsArea = document.getElementById("args"),
-        resultArea = document.getElementById("result");
+        resultArea = document.getElementById("result"),
+        runBtn = document.getElementById("runBtn");
     var code = codeArea.value,
         codeFormat = codeFormatSelect.value.toLowerCase(),
         args = argsArea.value ? argsArea.value.split("\n") : [],
         debug = false;
-    var result = runHBL(code, codeFormat, args, debug);
-    resultArea.value = result;
     generateURL();
+    runBtn.disabled = true;
+    setTimeout(() => {
+        var result = runHBL(code, codeFormat, args, debug);
+        resultArea.value = result;
+        runBtn.disabled = false;
+    }, 0);
 }
 
 function urlDecode(value) {
