@@ -27,7 +27,13 @@ function runCode() {
         args = argsArea.value ? argsArea.value.split("\n") : [],
         debug = false;
     generateURL();
+    resultArea.value = "";
     runBtn.disabled = true;
+    // Workaround to get Chrome & Edge to correctly update the button CSS
+    var runBtnValue = runBtn.value;
+    runBtn.value = "";
+    runBtn.value = runBtnValue;
+    // End workaround
     setTimeout(() => {
         var result = runHBL(code, codeFormat, args, debug);
         resultArea.value = result;
