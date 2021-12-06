@@ -35,13 +35,14 @@ Value: `2` (int)
 
 Callable with:
 
-| Arg types   | Thimble equivalent |
-| ----------- | ------------------ |
-| ()          | [`2prev`](./thimble-builtins.md#line-references)\* |
-| (int)       | [`double`](./thimble-builtins.md#double) |
-| (list)      | [`tail`](./thimble-builtins.md#tail) |
-| (int list)  | [`drop`](./thimble-builtins.md#drop) |
-| (list list) | [`zip`](./thimble-builtins.md#zip) |
+| Arg types                 | Thimble equivalent |
+| ------------------------- | ------------------ |
+| ()                        | [`2prev`](./thimble-builtins.md#line-references)\* |
+| (int)                     | [`double`](./thimble-builtins.md#double) |
+| (list)                    | [`tail`](./thimble-builtins.md#tail) |
+| (int list)                | [`drop`](./thimble-builtins.md#drop) |
+| (list list)               | [`zip`](./thimble-builtins.md#zip) |
+| (any any ... any any ...) | [`branch`](./thimble-builtins.md#branch) |
 
 \* Used as a magic value, not called as a 0-argument macro
 

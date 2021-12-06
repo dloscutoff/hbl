@@ -84,6 +84,7 @@ object Translator {
     "get-next" -> Builtins.getNextLine,
     "cond" -> Builtins.cond,
     "chain" -> Builtins.chain,
+    "branch" -> Builtins.branch,
     "recur" -> Builtins.recur,
     // Functions
     "inc" -> Builtins.inc,
@@ -199,6 +200,7 @@ object Translator {
     BigInt(2) -> HBLOverloadedBuiltin(
       {
         case arity: Int if arity == 0 => Builtins.generatePrevMacro(2)
+        case arity: Int if arity >= 4 => Builtins.branch
       },
       {
         case Seq(x: BigInt) => Builtins.double

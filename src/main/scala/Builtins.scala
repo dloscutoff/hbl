@@ -183,6 +183,21 @@ object Builtins {
     })
   }
 
+  def branchRestructure(args: Seq[HBLAny]): HBLList = {
+    if (args.length < 4)
+      HBLList(args.toVector)
+    else {
+      val root = args.head
+      val splitIndex = (args.length + 1) / 2
+      val leftBranch = args.slice(1, splitIndex)
+      val rightBranch = args.drop(splitIndex)
+      if (leftBranch.length == 1)
+        HBLList(root, leftBranch.head, branchRestructure(rightBranch))
+      else
+        HBLList(root, branchRestructure(leftBranch), branchRestructure(rightBranch))
+    }
+  }
+
   ////////////
   // Values //
   ////////////
@@ -282,6 +297,10 @@ object Builtins {
 
   val chain = HBLRewriteMacro("chain", (args: Seq[HBLAny], context: Context) => {
     args.reduceRight(HBLList(_, _))
+  })
+
+  val branch = HBLRewriteMacro("branch", (args: Seq[HBLAny], context: Context) => {
+    branchRestructure(args)
   })
 
   val recur = HBLFinalMacro("recur", (args: Seq[HBLAny], context: Context) => {
