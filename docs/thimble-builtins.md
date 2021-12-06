@@ -264,3 +264,7 @@ Takes a 2-argument function, a list, and another value; pairs each element of th
 ### `map-right`
 
 Takes a 2-argument function, a value, and a list; pairs the second argument with each element of the third argument, passes each pair through the function, and returns a new list containing the results.
+
+### `zip-with`
+
+Takes a 2-argument function and two lists; pairs corresponding elements from the two arguments, passes each pair through the function, and returns a new list containing the results. If the argument lists are of different lengths, the result has the same length as the shorter list.

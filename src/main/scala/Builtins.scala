@@ -52,10 +52,11 @@ class HBLList(vec: Vector[HBLAny], var lineNumber: Option[Int]) extends Seq[HBLA
   override def take(num: Int): HBLList = HBLList(vec.take(num))
   override def drop(num: Int): HBLList = HBLList(vec.drop(num))
   override def map[T](fn: HBLAny => T): Seq[T] = vec.map(fn)
+  override def zip[T](that: IterableOnce[T]): Seq[(HBLAny, T)] = vec.zip(that)
   override def filter(fn: HBLAny => Boolean): HBLList = HBLList(vec.filter(fn))
   override def reduce[T >: HBLAny](op: (T, T) => T): T = vec.reduce(op)
   def map(fn: HBLAny => HBLAny): HBLList = HBLList(vec.map(fn))
-  def zip(that: HBLList): HBLList = HBLList(vec.zip(that).map((x, y) => HBLList(x, y)))
+  def zipHBL(that: HBLList): HBLList = HBLList(vec.zip(that).map((x, y) => HBLList(x, y)))
   def flattenOnce: HBLList = HBLList(vec.flatten(element => {
     element match {
       case sublist: HBLList => sublist
@@ -397,7 +398,7 @@ object Builtins {
   val drop = HBLFunction("drop", {case Seq(x: BigInt, ls: HBLList) => ls.drop(Utils.bigIntToInt(x))})
 
   // Two-argument (list, list) functions
-  val zip = HBLFunction("zip", {case Seq(ls1: HBLList, ls2: HBLList) => ls1.zip(ls2)})
+  val zip = HBLFunction("zip", {case Seq(ls1: HBLList, ls2: HBLList) => ls1.zipHBL(ls2)})
   val concat = HBLFunction("concat", {case Seq(ls1: HBLList, ls2: HBLList) => ls1.appendedAll(ls2)})
 
   // Three-argument (any, any, list) functions
@@ -410,6 +411,12 @@ object Builtins {
   val mapLeft = HBLFunction("map-left", {
     case Seq(fn: HBLAny, ls: HBLList, right: HBLAny) =>
       ls.map(item => Interpreter.callFunction(fn, Seq(item, right)))
+  })
+
+  // Three-argument (any, list, list) functions
+  val zipWith = HBLFunction("zip-with", {
+    case Seq(fn: HBLAny, ls1: HBLList, ls2: HBLList) =>
+      HBLList(ls1.zip(ls2).map((x, y) => Interpreter.callFunction(fn, Seq(x, y))).toVector)
   })
 
   // Variadic functions

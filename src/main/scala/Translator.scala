@@ -126,6 +126,7 @@ object Translator {
     "drop" -> Builtins.drop,
     "zip" -> Builtins.zip,
     "concat" -> Builtins.concat,
+    "zip-with" -> Builtins.zipWith,
     "map-left" -> Builtins.mapLeft,
     "map-right" -> Builtins.mapRight,
     "cons" -> Builtins.cons,
@@ -207,7 +208,7 @@ object Translator {
         case Seq(ls: HBLList) => Builtins.tail
         case Seq(x: BigInt, ls: HBLList) => Builtins.drop
         case Seq(ls1: HBLList, ls2: HBLList) => Builtins.zip
-        //case Seq(fn: HBLAny, ls1: HBLList, ls2: HBLList) => Builtins.zipWith
+        case Seq(fn: HBLAny, ls1: HBLList, ls2: HBLList) => Builtins.zipWith
       }
     ),
     BigInt(3) -> HBLOverloadedBuiltin(
