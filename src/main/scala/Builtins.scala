@@ -125,7 +125,6 @@ class HBLOverloadedBuiltin(getMacro: Int => HBLMacro, getFunction: Seq[HBLAny] =
       case matchError: MatchError => None
     }
   }
-  //override def toString: String = s"<fn $name>"  // TODO: how to display these?
 }
 
 object Builtins {
@@ -388,7 +387,7 @@ object Builtins {
       ls.map(item => Interpreter.callFunction(fn, Seq(item)))
   })
   val filter = HBLFunction("filter", {
-    case Seq(fn: HBLAny, ls: HBLList) => // TODO
+    case Seq(fn: HBLAny, ls: HBLList) =>
       ls.filter(item => isTruthy(Interpreter.callFunction(fn, Seq(item))))
   })
   val append = HBLFunction("append", {case Seq(item: HBLAny, ls: HBLList) => ls.appended(item)})
