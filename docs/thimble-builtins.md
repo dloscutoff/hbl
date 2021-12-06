@@ -30,6 +30,17 @@ The function or value on the line above the current function is `prev`. The line
 
 ## Macros
 
+### `branch`
+
+Takes four or more arguments and evaluates the binary tree resulting from the following rearrangement:
+
+- The first argument is the root.
+- The remaining arguments are divided into left and right halves. If the number of remaining arguments is odd, the left half is the smaller half.
+- If either half contains more than three expressions, apply the branch macro to it recursively.
+- If the left half contains only one expression, that expression is used as the left argument (rather than being wrapped in a single-element list).
+
+For instance, `(branch mul inc arg1 dec arg1)` is equivalent to `(mul (inc arg1) (dec arg1))`, and `(branch mul arg1 dec (double arg1))` is equivalent to `(mul arg1 (dec (double arg1)))`.
+
 ### `chain`
 
 Takes three or more arguments: a series of functions (or macros) and a value. Applies the rightmost function to the value, then the next function to that result, and so on. All functions must be able to take one argument. For instance, `(chain inc double length arg1)` is equivalent to `(inc (double (length arg1)))`.
