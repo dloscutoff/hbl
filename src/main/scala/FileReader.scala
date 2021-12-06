@@ -30,7 +30,8 @@ object FileReader {
       case extensionPattern("hb") => FileFormat.Raw
       case extensionPattern("hbl") => FileFormat.ASCII
       case extensionPattern("thbl") => FileFormat.Thimble
-      case _ => FileFormat.ASCII  // TODO: How to handle unrecognized file format?
+      // With unrecognized file formats, default to ASCII HBL
+      case _ => FileFormat.ASCII
     }
     try {
       val code = if (format == FileFormat.Raw) {
