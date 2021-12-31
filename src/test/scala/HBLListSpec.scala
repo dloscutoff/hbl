@@ -53,19 +53,11 @@ class HBLListSpec extends AnyFlatSpec {
     val lsBigInt = HBLList(BigInt("12345678901234567890"))
     val lsHBLList = HBLList(HBLList(), HBLList())
     val lsHBLFunction = HBLList(HBLFunction("f", args => BigInt(0)))
-    val lsHBLMacro = HBLList(HBLFinalMacro("m", (args, context) => BigInt(0)))
-    assert(lsBigInt(0) match {
-      case i: HBLAny => true
-    })
-    assert(lsHBLList(0) match {
-      case l: HBLAny => true
-    })
-    assert(lsHBLFunction(0) match {
-      case f: HBLAny => true
-    })
-    assert(lsHBLMacro(0) match {
-      case m: HBLAny => true
-    })
+    val lsHBLMacro = HBLList(HBLFinalMacro("m", args => BigInt(0)))
+    assert(lsBigInt(0).isInstanceOf[HBLAny])
+    assert(lsHBLList(0).isInstanceOf[HBLAny])
+    assert(lsHBLFunction(0).isInstanceOf[HBLAny])
+    assert(lsHBLMacro(0).isInstanceOf[HBLAny])
   }
 
   it should "support basic list operations" in {

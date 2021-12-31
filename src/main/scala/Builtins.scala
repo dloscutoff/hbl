@@ -95,10 +95,10 @@ case class HBLFunction(name: String, fn: Seq[HBLAny] => HBLAny)
 
 sealed trait HBLMacro extends HBLBuiltin {
   val name: String
-  val mac: (Seq[HBLAny], Context) => HBLAny
-  def apply(args: Seq[HBLAny], context: Context): HBLAny = {
+  val mac: Seq[HBLAny] => Context ?=> HBLAny
+  def apply(args: Seq[HBLAny])(using Context): HBLAny = {
     try {
-      mac(args, context)
+      mac(args)
     } catch {
       case matchError: MatchError =>
         throw ArgumentException(
@@ -109,9 +109,9 @@ sealed trait HBLMacro extends HBLBuiltin {
   override def toString: String = s":$name:"
 }
 
-case class HBLRewriteMacro(name: String, mac: (Seq[HBLAny], Context) => HBLAny)
+case class HBLRewriteMacro(name: String, mac: Seq[HBLAny] => Context ?=> HBLAny)
     extends HBLMacro
-case class HBLFinalMacro(name: String, mac: (Seq[HBLAny], Context) => HBLAny)
+case class HBLFinalMacro(name: String, mac: Seq[HBLAny] => Context ?=> HBLAny)
     extends HBLMacro
 
 final class HBLOverloadedBuiltin(
@@ -172,7 +172,9 @@ object Builtins {
     }
   }
 
-  def getRelativeProgramLine(relativeIndex: Int, context: Context): HBLAny = {
+  def getRelativeProgramLine(
+      relativeIndex: Int
+  )(using context: Context): HBLAny = {
     val currentIndex = context.lineNumber match {
       case Some(number) => number
       case None         => ???
@@ -193,9 +195,7 @@ object Builtins {
   def generatePrevMacro(relativeIndex: Int): HBLMacro = {
     HBLFinalMacro(
       s"${relativeIndex}prev",
-      (args: Seq[HBLAny], context: Context) => {
-        getRelativeProgramLine(-relativeIndex, context)
-      }
+      args => getRelativeProgramLine(-relativeIndex)
     )
   }
 
@@ -230,119 +230,112 @@ object Builtins {
   // Zero-argument macros
   val getLocals = HBLFinalMacro(
     "get-locals",
-    (args, context) => {
-      if (context.fn == None) {
-        throw TopLevelException(
-          "Cannot access args at top level, only within a function"
-        )
-      } else if (args.nonEmpty) {
-        throw ArgumentException("get-locals does not take any arguments")
-      } else {
-        HBLList(context.locals.toVector)
+    args =>
+      context ?=> {
+        if (context.fn == None) {
+          throw TopLevelException(
+            "Cannot access args at top level, only within a function"
+          )
+        } else if (args.nonEmpty) {
+          throw ArgumentException("get-locals does not take any arguments")
+        } else {
+          HBLList(context.locals.toVector)
+        }
       }
-    }
   )
 
   val countLocals = HBLFinalMacro(
     "count-locals",
-    (args, context) => {
-      if (context.fn == None) {
-        throw TopLevelException(
-          "Cannot access args at top level, only within a function"
-        )
-      } else if (!args.isEmpty) {
-        throw ArgumentException("count-locals does not take any arguments")
-      } else {
-        BigInt(context.locals.length)
+    args =>
+      context ?=> {
+        if (context.fn == None) {
+          throw TopLevelException(
+            "Cannot access args at top level, only within a function"
+          )
+        } else if (args.nonEmpty) {
+          throw ArgumentException("count-locals does not take any arguments")
+        } else {
+          BigInt(context.locals.length)
+        }
       }
-    }
   )
 
   val getThisLine = HBLFinalMacro(
     "get-this",
-    (args, context) => {
+    args =>
       if (!args.isEmpty) {
         throw ArgumentException("get-this does not take any arguments")
       } else {
-        getRelativeProgramLine(0, context)
+        getRelativeProgramLine(0)
       }
-    }
   )
 
   // One-argument macros
   val quote = HBLFinalMacro(
     "quote",
-    (args, context) => {
-      val Seq(arg) = args
-      arg match {
-        case ls: HBLList => {
-          ls.lineNumber = context.lineNumber
-          ls
+    args =>
+      context ?=> {
+        val Seq(arg) = args
+        arg match {
+          case ls: HBLList => {
+            ls.lineNumber = context.lineNumber
+            ls
+          }
+          case _ => arg
         }
-        case _ => arg
       }
-    }
   )
 
   val getLocal = HBLFinalMacro(
     "get-local",
-    (args, context) => {
-      val Seq(index: BigInt) = args
-      if (context.fn == None) {
-        throw TopLevelException(
-          s"Cannot access args at top level, only within a function"
-        )
-      } else if (index < 1) {
-        throw ArgumentException(
-          s"Argument to get-local must be greater than 0 (not $index)"
-        )
-      } else if (index > context.locals.length) {
-        throw ArgumentException(
-          s"Not enough arguments to bind arg$index in user-defined function"
-        )
-      } else {
-        context.locals(Utils.bigIntToInt(index - 1))
+    args =>
+      context ?=> {
+        val Seq(index: BigInt) = args
+        if (context.fn == None) {
+          throw TopLevelException(
+            s"Cannot access args at top level, only within a function"
+          )
+        } else if (index < 1) {
+          throw ArgumentException(
+            s"Argument to get-local must be greater than 0 (not $index)"
+          )
+        } else if (index > context.locals.length) {
+          throw ArgumentException(
+            s"Not enough arguments to bind arg$index in user-defined function"
+          )
+        } else {
+          context.locals(Utils.bigIntToInt(index - 1))
+        }
       }
-    }
   )
 
   val getPrevLine = HBLFinalMacro(
     "get-prev",
-    (args, context) => {
-      getRelativeProgramLine(
-        args match {
-          case Seq(arg: BigInt) => -Utils.bigIntToInt(arg)
-          case Seq()            => -1
-        },
-        context
-      )
+    {
+      case Seq(arg: BigInt) => getRelativeProgramLine(-Utils.bigIntToInt(arg))
+      case Seq()            => getRelativeProgramLine(-1)
     }
   )
 
   val getNextLine = HBLFinalMacro(
     "get-next",
-    (args, context) => {
-      getRelativeProgramLine(
-        args match {
-          case Seq(arg: BigInt) => Utils.bigIntToInt(arg)
-          case Seq()            => 1
-        },
-        context
-      )
+    {
+      case Seq(arg: BigInt) => getRelativeProgramLine(Utils.bigIntToInt(arg))
+      case Seq()            => getRelativeProgramLine(1)
     }
   )
 
   // Variadic macros
   val cond = HBLRewriteMacro(
     "cond",
-    (args, context) => {
+    args => {
       var Seq(testExpr: HBLAny, trueExpr: HBLAny, moreExprs*) = args
-      var testVal = Interpreter.eval(testExpr)(using context)
+      var testVal = Interpreter.eval(testExpr)
       while (!isTruthy(testVal) && moreExprs.length > 1) {
         testExpr = moreExprs(0)
         trueExpr = moreExprs(1)
         moreExprs = moreExprs.drop(2)
-        testVal = Interpreter.eval(testExpr)(using context)
+        testVal = Interpreter.eval(testExpr)
       }
       if (isTruthy(testVal)) {
         trueExpr
@@ -354,36 +347,26 @@ object Builtins {
     }
   )
 
-  val chain = HBLRewriteMacro(
-    "chain",
-    (args, context) => {
-      args.reduceRight(HBLList(_, _))
-    }
-  )
+  val chain = HBLRewriteMacro("chain", _.reduceRight(HBLList(_, _)))
 
-  val branch = HBLRewriteMacro(
-    "branch",
-    (args, context) => {
-      branchRestructure(args)
-    }
-  )
+  val branch = HBLRewriteMacro("branch", branchRestructure(_))
 
   val recur = HBLFinalMacro(
     "recur",
-    (args, context) => {
-      println("Calling recur builtin!!")
-      context.fn match {
-        case Some(fn: HBLList) => {
-          given Context =
-            context.withNewLocals(Interpreter.evalEach(args)(using context))
-          Interpreter.eval(fn)
+    args =>
+      context ?=> {
+        println("Calling recur builtin!!")
+        context.fn match {
+          case Some(fn: HBLList) =>
+            Interpreter.eval(fn)(using
+              context.withNewLocals(Interpreter.evalEach(args))
+            )
+          case None =>
+            throw TopLevelException(
+              "Cannot use recur at top level, only within a function"
+            )
         }
-        case None =>
-          throw TopLevelException(
-            "Cannot use recur at top level, only within a function"
-          )
       }
-    }
   )
 
   ///////////////

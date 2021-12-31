@@ -37,6 +37,10 @@ object Context {
   def apply(lineNumber: Int): Context = Context(Some(lineNumber), None, Seq())
   def apply(lineNumber: Int, fn: HBLList, locals: Seq[HBLAny]): Context =
     Context(Some(lineNumber), Some(fn), locals)
+
+  /** Summon an implicit Context
+    */
+  def get(using context: Context) = context
 }
 
 object Interpreter {
@@ -100,11 +104,10 @@ object Interpreter {
               // Recursive call: evaluate the same function again in the context
               // of the new arguments
               context.fn match {
-                case Some(currentFunc: HBLList) => {
-                  given Context =
-                    context.withNewLocals(evalEach(args)(using context))
-                  eval(currentFunc)
-                }
+                case Some(currentFunc: HBLList) =>
+                  eval(currentFunc)(using
+                    context.withNewLocals(evalEach(args))
+                  )
                 case None =>
                   throw TopLevelException(
                     "Cannot use recur at top level, only within a function"
@@ -112,10 +115,10 @@ object Interpreter {
               }
             }
             // A final macro just does a rewrite and returns the result
-            case finalMacro: HBLFinalMacro => finalMacro(args, context)
+            case finalMacro: HBLFinalMacro => finalMacro(args)
             // A rewrite macro does a rewrite and then evaluates the result again
             case rewriteMacro: HBLRewriteMacro =>
-              eval(rewriteMacro(args, context))
+              eval(rewriteMacro(args))
           }
         } else {
           // This is a function call
@@ -148,7 +151,7 @@ object Interpreter {
         }
       }
       // Evaluating an empty list is a reference to the previous line
-      case HBLList() => Builtins.getPrevLine(Seq(), context)
+      case HBLList() => Builtins.getPrevLine(Seq())
       // All other values (integers, builtins) evaluate to themselves
       case value: HBLAny => value
     }
