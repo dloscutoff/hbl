@@ -63,7 +63,7 @@ object Interpreter {
   }
 
   def runProgram(argVals: Seq[HBLAny] = List()): Option[HBLAny] = {
-    if (!programLines.isEmpty) {
+    if (programLines.nonEmpty) {
       programLines.last match {
         case mainFn: HBLList => {
           given Context = Context(programLines.length - 1, mainFn, argVals)
@@ -80,7 +80,7 @@ object Interpreter {
       // An s-expression is some kind of function or macro call, where the
       // head of the expression is the function/macro and the tail is the
       // list of arguments
-      case HBLList(exprHead: HBLAny, args*) => {
+      case HBLList(exprHead: HBLAny, args*) =>
         val headVal = eval(exprHead)
         // See if the head is a macro of some kind
         val macroVal: Option[HBLMacro] = headVal match {
@@ -105,9 +105,7 @@ object Interpreter {
               // of the new arguments
               context.fn match {
                 case Some(currentFunc: HBLList) =>
-                  eval(currentFunc)(using
-                    context.withNewLocals(evalEach(args))
-                  )
+                  eval(currentFunc)(using context.withNewLocals(evalEach(args)))
                 case None =>
                   throw TopLevelException(
                     "Cannot use recur at top level, only within a function"
@@ -140,16 +138,14 @@ object Interpreter {
             // A direct reference to a builtin function
             case builtinFunction: HBLFunction => builtinFunction(argVals)
             // A list representing a user-defined function
-            case userFunction: HBLList => {
-              given Context =
+            case userFunction: HBLList =>
+              eval(userFunction)(using
                 Context(userFunction.lineNumber, Some(userFunction), argVals)
-              eval(userFunction)
-            }
+              )
             // Any other value is not a callable value
             case other => throw NotCallableException(s"$other")
           }
         }
-      }
       // Evaluating an empty list is a reference to the previous line
       case HBLList() => Builtins.getPrevLine(Seq())
       // All other values (integers, builtins) evaluate to themselves
@@ -166,19 +162,16 @@ object Interpreter {
   def callFunction(fn: HBLAny, argVals: Seq[HBLAny]): HBLAny = {
     fn match {
       // A list representing a user-defined function
-      case userFunction: HBLList if !userFunction.isEmpty => {
-        given Context =
+      case userFunction: HBLList if userFunction.nonEmpty =>
+        eval(userFunction)(using
           Context(userFunction.lineNumber, Some(userFunction), argVals)
-        eval(userFunction)
-      }
+        )
       // A direct reference to a builtin function or a literal value
       // that's overloaded as a function
-      case builtin => {
-        given Context = Context()
+      case builtin =>
         // The arguments have already been evaluated, so quote each of them
         // to prevent them from being evaluated twice
-        eval(HBLList((builtin +: quoteEach(argVals)).toVector))
-      }
+        eval(HBLList((builtin +: quoteEach(argVals)).toVector))(using Context())
     }
   }
 }

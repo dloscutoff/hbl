@@ -39,9 +39,8 @@ object FileReader {
         Parser.fromBytes(byteArray)
       } else {
         val inFile = Source.fromFile(filename)
-        try {
-          inFile.mkString
-        } finally inFile.close()
+        try inFile.mkString
+        finally inFile.close()
       }
       (code, format)
     } catch {

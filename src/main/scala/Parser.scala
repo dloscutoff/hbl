@@ -48,7 +48,7 @@ object Parser {
     var parseTree = parse(tokens, inferParens = true)
     // If we hit an unmatched close-paren, parse the rest and insert
     // the first bit we parsed as its leftmost subtree
-    while (!tokens.isEmpty) {
+    while (tokens.nonEmpty) {
       val leftSubtree = parseTree
       parseTree = parse(tokens, inferParens = true)
       parseTree = InternalNode(leftSubtree +: parseTree.children)
@@ -72,16 +72,16 @@ object Parser {
     val children = new ArrayBuffer[ParseNode]
     var closeParen = ")"
     var done = false
-    while (!done && !tokens.isEmpty) {
+    while (!done && tokens.nonEmpty) {
       tokens.pop match {
         case Token(openParenPattern(paren)) =>
           val subtree = parse(tokens, inferParens, paren, depth + 1)
-          children.addOne(subtree)
+          children += subtree
         case Token(closeParenPattern(paren)) =>
           closeParen = paren
           done = true
         case token =>
-          children.addOne(LeafNode(token))
+          children += LeafNode(token)
       }
     }
     if (!inferParens) {
@@ -110,11 +110,9 @@ object Parser {
   }
 
   def fromBytes(codeBytes: Array[Byte]): String = {
-    codeBytes
-      .flatMap(byte => {
-        val asInt = (byte.toInt + 256) % 256
-        List(codepage(asInt / 16), codepage(asInt % 16))
-      })
-      .mkString
+    codeBytes.flatMap { byte =>
+      val asInt = (byte.toInt + 256) % 256
+      List(codepage(asInt / 16), codepage(asInt % 16))
+    }.mkString
   }
 }

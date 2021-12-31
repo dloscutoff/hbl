@@ -60,14 +60,14 @@ class HBLList(vec: Vector[HBLAny], var lineNumber: Option[Int])
   def zipHBL(that: HBLList): HBLList = HBLList(
     vec.zip(that).map((x, y) => HBLList(x, y))
   )
-  def flattenOnce: HBLList = HBLList(vec.flatten({
+  def flattenOnce: HBLList = HBLList(vec.flatten {
     case sublist: HBLList => sublist
     case other            => HBLList(other)
-  }))
-  def flattenAll: HBLList = HBLList(vec.flatten({
+  })
+  def flattenAll: HBLList = HBLList(vec.flatten {
     case sublist: HBLList => sublist.flattenAll
     case other            => HBLList(other)
-  }))
+  })
   def sorted: HBLList = HBLList(vec.sortWith(Builtins.isLess))
   override def toString: String = vec.mkString("(", " ", ")")
 }
@@ -144,7 +144,7 @@ object Builtins {
   def isTruthy(item: HBLAny): Boolean = {
     item match {
       case x: BigInt             => x != 0
-      case ls: HBLList           => !ls.isEmpty
+      case ls: HBLList           => ls.nonEmpty
       case fnOrMacro: HBLBuiltin => true
     }
   }
@@ -157,7 +157,7 @@ object Builtins {
       case (x: BigInt, y: BigInt)   => x < y
       case (x: BigInt, ls: HBLList) => true
       case (ls: HBLList, x: BigInt) => false
-      case (ls1: HBLList, ls2: HBLList) => {
+      case (ls1: HBLList, ls2: HBLList) =>
         if (ls2.isEmpty) {
           false
         } else if (ls1.isEmpty) {
@@ -167,7 +167,6 @@ object Builtins {
         } else {
           isLess(ls1.tail, ls2.tail)
         }
-      }
       case _ => throw MatchError(left, right)
     }
   }
@@ -180,11 +179,10 @@ object Builtins {
       case None         => ???
     }
     Interpreter.programLines.length match {
-      case programLength if programLength > 0 => {
+      case programLength if programLength > 0 =>
         val absoluteIndex =
           Utils.mod(currentIndex + relativeIndex, programLength)
         Interpreter.programLines(absoluteIndex)
-      }
       case _ =>
         throw LineReferenceException(
           "Cannot reference another line while loading first line"
@@ -247,7 +245,7 @@ object Builtins {
   val countLocals = HBLFinalMacro(
     "count-locals",
     args =>
-      context ?=> {
+      context ?=>
         if (context.fn == None) {
           throw TopLevelException(
             "Cannot access args at top level, only within a function"
@@ -257,13 +255,12 @@ object Builtins {
         } else {
           BigInt(context.locals.length)
         }
-      }
   )
 
   val getThisLine = HBLFinalMacro(
     "get-this",
     args =>
-      if (!args.isEmpty) {
+      if (args.nonEmpty) {
         throw ArgumentException("get-this does not take any arguments")
       } else {
         getRelativeProgramLine(0)
@@ -274,39 +271,35 @@ object Builtins {
   val quote = HBLFinalMacro(
     "quote",
     args =>
-      context ?=> {
-        val Seq(arg) = args
-        arg match {
-          case ls: HBLList => {
+      context ?=>
+        args match {
+          case Seq(ls: HBLList) =>
             ls.lineNumber = context.lineNumber
             ls
-          }
-          case _ => arg
+          case Seq(arg) => arg
         }
-      }
   )
 
   val getLocal = HBLFinalMacro(
     "get-local",
-    args =>
-      context ?=> {
-        val Seq(index: BigInt) = args
-        if (context.fn == None) {
-          throw TopLevelException(
-            s"Cannot access args at top level, only within a function"
-          )
-        } else if (index < 1) {
-          throw ArgumentException(
-            s"Argument to get-local must be greater than 0 (not $index)"
-          )
-        } else if (index > context.locals.length) {
-          throw ArgumentException(
-            s"Not enough arguments to bind arg$index in user-defined function"
-          )
-        } else {
-          context.locals(Utils.bigIntToInt(index - 1))
-        }
+    { args => context ?=>
+      val Seq(index: BigInt) = args
+      if (context.fn == None) {
+        throw TopLevelException(
+          s"Cannot access args at top level, only within a function"
+        )
+      } else if (index < 1) {
+        throw ArgumentException(
+          s"Argument to get-local must be greater than 0 (not $index)"
+        )
+      } else if (index > context.locals.length) {
+        throw ArgumentException(
+          s"Not enough arguments to bind arg$index in user-defined function"
+        )
+      } else {
+        context.locals(Utils.bigIntToInt(index - 1))
       }
+    }
   )
 
   val getPrevLine = HBLFinalMacro(
@@ -328,7 +321,7 @@ object Builtins {
   // Variadic macros
   val cond = HBLRewriteMacro(
     "cond",
-    args => {
+    { args =>
       var Seq(testExpr: HBLAny, trueExpr: HBLAny, moreExprs*) = args
       var testVal = Interpreter.eval(testExpr)
       while (!isTruthy(testVal) && moreExprs.length > 1) {
@@ -339,7 +332,7 @@ object Builtins {
       }
       if (isTruthy(testVal)) {
         trueExpr
-      } else if (!moreExprs.isEmpty) {
+      } else if (moreExprs.nonEmpty) {
         moreExprs.head
       } else {
         testExpr
@@ -353,20 +346,19 @@ object Builtins {
 
   val recur = HBLFinalMacro(
     "recur",
-    args =>
-      context ?=> {
-        println("Calling recur builtin!!")
-        context.fn match {
-          case Some(fn: HBLList) =>
-            Interpreter.eval(fn)(using
-              context.withNewLocals(Interpreter.evalEach(args))
-            )
-          case None =>
-            throw TopLevelException(
-              "Cannot use recur at top level, only within a function"
-            )
-        }
+    { args => context ?=>
+      println("Calling recur builtin!!")
+      context.fn match {
+        case Some(fn: HBLList) =>
+          Interpreter.eval(fn)(using
+            context.withNewLocals(Interpreter.evalEach(args))
+          )
+        case None =>
+          throw TopLevelException(
+            "Cannot use recur at top level, only within a function"
+          )
       }
+    }
   )
 
   ///////////////
@@ -414,31 +406,25 @@ object Builtins {
   )
   val product = HBLFunction(
     "product",
-    {
-      case Seq(ls: HBLList) => {
-        if (ls.isEmpty) then 1
-        else
-          ls.flattenAll.reduce((left: HBLAny, right: HBLAny) => {
-            (left, right) match {
-              case (x: BigInt, y: BigInt) => x * y
-              case _                      => throw MatchError(left, right)
-            }
-          })
-      }
+    { case Seq(ls: HBLList) =>
+      if (ls.isEmpty) then 1
+      else
+        ls.flattenAll.reduce {
+          case (x: BigInt, y: BigInt) => x * y
+          case (left, right)          => throw MatchError(left, right)
+        }
     }
   )
   val flatten =
     HBLFunction("flatten", { case Seq(ls: HBLList) => ls.flattenAll })
   val max = HBLFunction(
     "max",
-    {
-      case Seq(ls: HBLList) => {
-        if (ls.isEmpty) then HBLNil
-        else
-          ls.flattenAll.reduce((left: HBLAny, right: HBLAny) => {
-            if (isLess(right, left)) then left else right
-          })
-      }
+    { case Seq(ls: HBLList) =>
+      if (ls.isEmpty) then HBLNil
+      else
+        ls.flattenAll.reduce((left, right) =>
+          if (isLess(right, left)) then left else right
+        )
     }
   )
   val sort = HBLFunction("sort", { case Seq(ls: HBLList) => ls.sorted })
@@ -455,13 +441,13 @@ object Builtins {
   val min = HBLFunction(
     "min",
     {
-      case Seq(ls: HBLList) => {
+      case Seq(ls: HBLList) => 
         if (ls.isEmpty) then HBLNil
         else
-          ls.flattenAll.reduce((left: HBLAny, right: HBLAny) => {
+          ls.flattenAll.reduce((left, right) =>
             if (isLess(right, left)) then right else left
-          })
-      }
+          )
+      
     }
   )
   val emptyQ = HBLFunction(
