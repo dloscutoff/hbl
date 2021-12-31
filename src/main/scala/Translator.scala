@@ -1,18 +1,18 @@
-/** Half-Byte Lisp interpreter Copyright (C) 2021 David Loscutoff
-  * <https://github.com/dloscutoff>
+/** Half-Byte Lisp interpreter
+  * Copyright (C) 2021 David Loscutoff <https://github.com/dloscutoff>
   *
-  * This program is free software: you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the Free
-  * Software Foundation, either version 3 of the License, or (at your option)
-  * any later version.
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
   *
-  * This program is distributed in the hope that it will be useful, but WITHOUT
-  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-  * more details.
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
   *
-  * You should have received a copy of the GNU General Public License along with
-  * this program. If not, see <http://www.gnu.org/licenses/>.
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
 package hbl
@@ -38,7 +38,7 @@ object Translator {
       case LeafNode(Token(atom)) => {
         atom match {
           case codepageValues(value) => value
-          case _                     => throw TokenException(s"$atom")
+          case _ => throw TokenException(s"$atom")
         }
       }
     }
@@ -68,7 +68,7 @@ object Translator {
           case prevRefPattern(offset) =>
             HBLList(Builtins.getPrevLine, offset.toInt)
           case namedBuiltins(builtin) => builtin
-          case _                      => throw TokenException(s"$atom")
+          case _ => throw TokenException(s"$atom")
         }
       }
     }
@@ -179,8 +179,8 @@ object Translator {
         case arity: Int if arity >= 3 => Builtins.chain
       },
       {
-        case Seq(x: BigInt)            => Builtins.dec
-        case Seq(ls: HBLList)          => Builtins.flatten
+        case Seq(x: BigInt) => Builtins.dec
+        case Seq(ls: HBLList) => Builtins.flatten
         case Seq(x: BigInt, y: BigInt) => Builtins.sub
       }
     ),
@@ -189,9 +189,9 @@ object Translator {
         case arity: Int if arity == 0 => Builtins.getThisLine
       },
       {
-        case Seq(x: BigInt)              => Builtins.oneTo
-        case Seq(ls: HBLList)            => Builtins.length
-        case Seq(x: BigInt, y: BigInt)   => Builtins.range
+        case Seq(x: BigInt) => Builtins.oneTo
+        case Seq(ls: HBLList) => Builtins.length
+        case Seq(x: BigInt, y: BigInt) => Builtins.range
         case Seq(x: BigInt, ls: HBLList) => Builtins.take
       }
     ),
@@ -199,10 +199,10 @@ object Translator {
       // No macros yet
       arity => throw MatchError(arity),
       {
-        case Seq(ls: HBLList)                             => Builtins.head
-        case Seq(x: BigInt, y: BigInt)                    => Builtins.pow
-        case Seq(ls: HBLList, x: BigInt)                  => Builtins.nth
-        case Seq(any: HBLAny, ls: HBLList)                => Builtins.cons
+        case Seq(ls: HBLList) => Builtins.head
+        case Seq(x: BigInt, y: BigInt) => Builtins.pow
+        case Seq(ls: HBLList, x: BigInt) => Builtins.nth
+        case Seq(any: HBLAny, ls: HBLList) => Builtins.cons
         case Seq(any1: HBLAny, any2: HBLAny, ls: HBLList) => Builtins.cons
         case Seq(any1: HBLAny, any2: HBLAny, any3: HBLAny, ls: HBLList) =>
           Builtins.cons
@@ -214,10 +214,10 @@ object Translator {
         case arity: Int if arity >= 4 => Builtins.branch
       },
       {
-        case Seq(x: BigInt)                              => Builtins.double
-        case Seq(ls: HBLList)                            => Builtins.tail
-        case Seq(x: BigInt, ls: HBLList)                 => Builtins.drop
-        case Seq(ls1: HBLList, ls2: HBLList)             => Builtins.zip
+        case Seq(x: BigInt) => Builtins.double
+        case Seq(ls: HBLList) => Builtins.tail
+        case Seq(x: BigInt, ls: HBLList) => Builtins.drop
+        case Seq(ls1: HBLList, ls2: HBLList) => Builtins.zip
         case Seq(fn: HBLAny, ls1: HBLList, ls2: HBLList) => Builtins.zipWith
       }
     ),
@@ -226,9 +226,9 @@ object Translator {
         case arity: Int if arity == 0 => Builtins.generatePrevMacro(3)
       },
       {
-        case Seq(x: BigInt)                            => Builtins.neg
-        case Seq(ls: HBLList)                          => Builtins.reverse
-        case Seq(x: BigInt, y: BigInt)                 => Builtins.lessQ
+        case Seq(x: BigInt) => Builtins.neg
+        case Seq(ls: HBLList) => Builtins.reverse
+        case Seq(x: BigInt, y: BigInt) => Builtins.lessQ
         case Seq(fn: HBLAny, ls: HBLList, any: HBLAny) => Builtins.mapLeft
       }
     ),
@@ -237,10 +237,10 @@ object Translator {
         case arity: Int if arity == 0 => Builtins.generatePrevMacro(4)
       },
       {
-        case Seq(x: BigInt)                       => Builtins.inc
-        case Seq(ls: HBLList)                     => Builtins.sum
-        case Seq(x: BigInt, y: BigInt)            => Builtins.add
-        case Seq(ls1: HBLList, ls2: HBLList)      => Builtins.concat
+        case Seq(x: BigInt) => Builtins.inc
+        case Seq(ls: HBLList) => Builtins.sum
+        case Seq(x: BigInt, y: BigInt) => Builtins.add
+        case Seq(ls1: HBLList, ls2: HBLList) => Builtins.concat
         case Seq(x: BigInt, y: BigInt, z: BigInt) => Builtins.add
       }
     ),
@@ -249,10 +249,10 @@ object Translator {
         case arity: Int if arity == 0 => Builtins.generatePrevMacro(5)
       },
       {
-        case Seq(ls: HBLList)                          => Builtins.product
-        case Seq(x: BigInt, y: BigInt)                 => Builtins.mul
-        case Seq(ls: HBLList, x: BigInt)               => Builtins.repeat
-        case Seq(fn: HBLAny, ls: HBLList)              => Builtins.map
+        case Seq(ls: HBLList) => Builtins.product
+        case Seq(x: BigInt, y: BigInt) => Builtins.mul
+        case Seq(ls: HBLList, x: BigInt) => Builtins.repeat
+        case Seq(fn: HBLAny, ls: HBLList) => Builtins.map
         case Seq(fn: HBLAny, any: HBLAny, ls: HBLList) => Builtins.mapRight
       }
     ),
@@ -260,7 +260,7 @@ object Translator {
       // No macros yet
       arity => throw MatchError(arity),
       {
-        case Seq(ls: HBLList)              => Builtins.last
+        case Seq(ls: HBLList) => Builtins.last
         case Seq(any: HBLAny, ls: HBLList) => Builtins.append
       }
     ),
@@ -268,8 +268,8 @@ object Translator {
       // No macros yet
       arity => throw MatchError(arity),
       {
-        case Seq(x: BigInt)            => Builtins.abs
-        case Seq(ls: HBLList)          => Builtins.max
+        case Seq(x: BigInt) => Builtins.abs
+        case Seq(ls: HBLList) => Builtins.max
         case Seq(x: BigInt, y: BigInt) => Builtins.div
         //case Seq(fn: HBLAny, ls: HBLList) => Builtins.reduceLeft
         //case Seq(fn: HBLAny, any: HBLAny, ls: HBLList) => Builtins.foldLeft
@@ -287,9 +287,9 @@ object Translator {
         case arity if arity == 0 => Builtins.countLocals
       },
       {
-        case Seq(x: BigInt)               => Builtins.oddQ
-        case Seq(ls: HBLList)             => Builtins.sort
-        case Seq(x: BigInt, y: BigInt)    => Builtins.mod
+        case Seq(x: BigInt) => Builtins.oddQ
+        case Seq(ls: HBLList) => Builtins.sort
+        case Seq(x: BigInt, y: BigInt) => Builtins.mod
         case Seq(fn: HBLAny, ls: HBLList) => Builtins.filter
       }
     ),
@@ -305,7 +305,7 @@ object Translator {
         case arity: Int if arity >= 2 => Builtins.recur
       },
       {
-        case Seq(x: BigInt)   => Builtins.zeroQ
+        case Seq(x: BigInt) => Builtins.zeroQ
         case Seq(ls: HBLList) => Builtins.emptyQ
       }
     ),
@@ -320,7 +320,7 @@ object Translator {
       {
         case arity if arity == 0 => Builtins.getLocals
         case arity if arity == 1 => Builtins.recur
-        case arity if arity > 1  => Builtins.cond
+        case arity if arity > 1 => Builtins.cond
       },
       // No functions
       args => throw MatchError(args)

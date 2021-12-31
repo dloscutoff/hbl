@@ -1,18 +1,18 @@
-/** Half-Byte Lisp interpreter Copyright (C) 2021 David Loscutoff
-  * <https://github.com/dloscutoff>
+/** Half-Byte Lisp interpreter
+  * Copyright (C) 2021 David Loscutoff <https://github.com/dloscutoff>
   *
-  * This program is free software: you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the Free
-  * Software Foundation, either version 3 of the License, or (at your option)
-  * any later version.
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
   *
-  * This program is distributed in the hope that it will be useful, but WITHOUT
-  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-  * more details.
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
   *
-  * You should have received a copy of the GNU General Public License along with
-  * this program. If not, see <http://www.gnu.org/licenses/>.
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
 package hbl
@@ -62,11 +62,11 @@ class HBLList(vec: Vector[HBLAny], var lineNumber: Option[Int])
   )
   def flattenOnce: HBLList = HBLList(vec.flatten {
     case sublist: HBLList => sublist
-    case other            => HBLList(other)
+    case other => HBLList(other)
   })
   def flattenAll: HBLList = HBLList(vec.flatten {
     case sublist: HBLList => sublist.flattenAll
-    case other            => HBLList(other)
+    case other => HBLList(other)
   })
   def sorted: HBLList = HBLList(vec.sortWith(Builtins.isLess))
   override def toString: String = vec.mkString("(", " ", ")")
@@ -143,8 +143,8 @@ object Builtins {
   ///////////////////////
   def isTruthy(item: HBLAny): Boolean = {
     item match {
-      case x: BigInt             => x != 0
-      case ls: HBLList           => ls.nonEmpty
+      case x: BigInt => x != 0
+      case ls: HBLList => ls.nonEmpty
       case fnOrMacro: HBLBuiltin => true
     }
   }
@@ -152,9 +152,9 @@ object Builtins {
   def isLess(left: HBLAny, right: HBLAny): Boolean = {
     // Builtin < integer < list
     (left, right) match {
-      case (_, fn: HBLBuiltin)      => false
-      case (fn: HBLBuiltin, _)      => true
-      case (x: BigInt, y: BigInt)   => x < y
+      case (_, fn: HBLBuiltin) => false
+      case (fn: HBLBuiltin, _) => true
+      case (x: BigInt, y: BigInt) => x < y
       case (x: BigInt, ls: HBLList) => true
       case (ls: HBLList, x: BigInt) => false
       case (ls1: HBLList, ls2: HBLList) =>
@@ -176,7 +176,7 @@ object Builtins {
   )(using context: Context): HBLAny = {
     val currentIndex = context.lineNumber match {
       case Some(number) => number
-      case None         => ???
+      case None => ???
     }
     Interpreter.programLines.length match {
       case programLength if programLength > 0 =>
@@ -306,7 +306,7 @@ object Builtins {
     "get-prev",
     {
       case Seq(arg: BigInt) => getRelativeProgramLine(-Utils.bigIntToInt(arg))
-      case Seq()            => getRelativeProgramLine(-1)
+      case Seq() => getRelativeProgramLine(-1)
     }
   )
 
@@ -314,7 +314,7 @@ object Builtins {
     "get-next",
     {
       case Seq(arg: BigInt) => getRelativeProgramLine(Utils.bigIntToInt(arg))
-      case Seq()            => getRelativeProgramLine(1)
+      case Seq() => getRelativeProgramLine(1)
     }
   )
 
@@ -398,7 +398,7 @@ object Builtins {
           ls.flattenAll.reduce((left: HBLAny, right: HBLAny) => {
             (left, right) match {
               case (x: BigInt, y: BigInt) => x + y
-              case _                      => throw MatchError(left, right)
+              case _ => throw MatchError(left, right)
             }
           })
       }
@@ -411,7 +411,7 @@ object Builtins {
       else
         ls.flattenAll.reduce {
           case (x: BigInt, y: BigInt) => x * y
-          case (left, right)          => throw MatchError(left, right)
+          case (left, right) => throw MatchError(left, right)
         }
     }
   )
@@ -441,13 +441,13 @@ object Builtins {
   val min = HBLFunction(
     "min",
     {
-      case Seq(ls: HBLList) => 
+      case Seq(ls: HBLList) =>
         if (ls.isEmpty) then HBLNil
         else
           ls.flattenAll.reduce((left, right) =>
             if (isLess(right, left)) then right else left
           )
-      
+
     }
   )
   val emptyQ = HBLFunction(
@@ -555,7 +555,7 @@ object Builtins {
   val add = HBLFunction(
     "add",
     {
-      case Seq(x: BigInt, y: BigInt)            => x + y
+      case Seq(x: BigInt, y: BigInt) => x + y
       case Seq(x: BigInt, y: BigInt, z: BigInt) => x + y + z
     }
   )
