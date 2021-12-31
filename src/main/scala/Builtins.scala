@@ -17,7 +17,8 @@
 
 package hbl
 
-import scala.collection.immutable.NumericRange
+import scala.collection.immutable.{NumericRange, SeqOps}
+import scala.collection.mutable
 
 class ArgumentException(message: String) extends Exception(message)
 class TopLevelException(message: String) extends Exception(message)
@@ -26,60 +27,56 @@ class LineReferenceException(message: String) extends Exception(message)
 type HBLAny = BigInt | HBLList | HBLBuiltin
 
 class HBLList(vec: Vector[HBLAny], var lineNumber: Option[Int])
-    extends Seq[HBLAny] {
+    extends Seq[HBLAny],
+      SeqOps[HBLAny, Seq, HBLList] {
   def this(vec: Vector[HBLAny]) = this(vec, None)
   def this(values: HBLAny*) = this(values.toVector)
   def this(range: NumericRange[BigInt]) = this(range.toVector)
+
+  override protected def fromSpecific(coll: IterableOnce[HBLAny]): HBLList =
+    HBLList(coll.iterator.to(Vector))
+  override protected def newSpecificBuilder: mutable.Builder[HBLAny, HBLList] =
+    mutable.ArrayBuffer
+      .newBuilder[HBLAny]
+      .mapResult(elems => HBLList(elems.to(Vector)))
+  override def empty: HBLList = HBLList(Vector.empty)
+  override def iterator = vec.iterator
+  override def length = vec.length
   override def apply(i: Int): HBLAny = vec(i)
-  override def iterator: Iterator[HBLAny] = vec.iterator
-  override def length: Int = vec.length
-  override def tail: HBLList = HBLList(vec.tail)
-  override def init: HBLList = HBLList(vec.init)
-  override def reverse: HBLList = HBLList(vec.reverse)
   def repeat(i: Int): HBLList = HBLList(List.fill(i)(this).flatten.toVector)
-  override def prepended[T >: HBLAny](item: T): HBLList = {
+  override def prepended[T >: HBLAny](item: T): HBLList =
     HBLList(vec.prepended[T](item).asInstanceOf[Vector[HBLAny]])
-  }
-  override def prependedAll[T >: HBLAny](prefix: IterableOnce[T]): HBLList = {
+
+  override def prependedAll[T >: HBLAny](prefix: IterableOnce[T]): HBLList =
     HBLList(vec.prependedAll[T](prefix).asInstanceOf[Vector[HBLAny]])
-  }
-  override def appended[T >: HBLAny](item: T): HBLList = {
+
+  override def appended[T >: HBLAny](item: T): HBLList =
     HBLList(vec.appended[T](item).asInstanceOf[Vector[HBLAny]])
-  }
-  override def appendedAll[T >: HBLAny](suffix: IterableOnce[T]): HBLList = {
+
+  override def appendedAll[T >: HBLAny](suffix: IterableOnce[T]): HBLList =
     HBLList(vec.appendedAll[T](suffix).asInstanceOf[Vector[HBLAny]])
-  }
-  override def take(num: Int): HBLList = HBLList(vec.take(num))
-  override def drop(num: Int): HBLList = HBLList(vec.drop(num))
-  override def map[T](fn: HBLAny => T): Seq[T] = vec.map(fn)
-  override def zip[T](that: IterableOnce[T]): Seq[(HBLAny, T)] = vec.zip(that)
-  override def filter(fn: HBLAny => Boolean): HBLList = HBLList(vec.filter(fn))
-  override def reduce[T >: HBLAny](op: (T, T) => T): T = vec.reduce(op)
+
   def map(fn: HBLAny => HBLAny): HBLList = HBLList(vec.map(fn))
   def zipHBL(that: HBLList): HBLList = HBLList(
     vec.zip(that).map((x, y) => HBLList(x, y))
   )
-  def flattenOnce: HBLList = HBLList(vec.flatten(element => {
-    element match {
-      case sublist: HBLList => sublist
-      case other            => HBLList(other)
-    }
+  def flattenOnce: HBLList = HBLList(vec.flatten({
+    case sublist: HBLList => sublist
+    case other            => HBLList(other)
   }))
-  def flattenAll: HBLList = HBLList(vec.flatten(element => {
-    element match {
-      case sublist: HBLList => sublist.flattenAll
-      case other            => HBLList(other)
-    }
+  def flattenAll: HBLList = HBLList(vec.flatten({
+    case sublist: HBLList => sublist.flattenAll
+    case other            => HBLList(other)
   }))
   def sorted: HBLList = HBLList(vec.sortWith(Builtins.isLess))
   override def toString: String = vec.mkString("(", " ", ")")
 }
 
 object HBLList {
-  def unapplySeq(ls: HBLList): Option[Seq[HBLAny]] = Some(ls)
+  def unapplySeq(ls: HBLList): Seq[HBLAny] = ls
 }
 
-trait HBLBuiltin
+sealed trait HBLBuiltin
 
 case class HBLFunction(name: String, fn: Seq[HBLAny] => HBLAny)
     extends HBLBuiltin {
@@ -96,7 +93,7 @@ case class HBLFunction(name: String, fn: Seq[HBLAny] => HBLAny)
   override def toString: String = s"<$name>"
 }
 
-trait HBLMacro extends HBLBuiltin {
+sealed trait HBLMacro extends HBLBuiltin {
   val name: String
   val mac: (Seq[HBLAny], Context) => HBLAny
   def apply(args: Seq[HBLAny], context: Context): HBLAny = {
@@ -117,7 +114,7 @@ case class HBLRewriteMacro(name: String, mac: (Seq[HBLAny], Context) => HBLAny)
 case class HBLFinalMacro(name: String, mac: (Seq[HBLAny], Context) => HBLAny)
     extends HBLMacro
 
-class HBLOverloadedBuiltin(
+final class HBLOverloadedBuiltin(
     getMacro: Int => HBLMacro,
     getFunction: Seq[HBLAny] => HBLFunction
 ) {
@@ -233,12 +230,12 @@ object Builtins {
   // Zero-argument macros
   val getLocals = HBLFinalMacro(
     "get-locals",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       if (context.fn == None) {
         throw TopLevelException(
           "Cannot access args at top level, only within a function"
         )
-      } else if (!args.isEmpty) {
+      } else if (args.nonEmpty) {
         throw ArgumentException("get-locals does not take any arguments")
       } else {
         HBLList(context.locals.toVector)
@@ -248,7 +245,7 @@ object Builtins {
 
   val countLocals = HBLFinalMacro(
     "count-locals",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       if (context.fn == None) {
         throw TopLevelException(
           "Cannot access args at top level, only within a function"
@@ -263,7 +260,7 @@ object Builtins {
 
   val getThisLine = HBLFinalMacro(
     "get-this",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       if (!args.isEmpty) {
         throw ArgumentException("get-this does not take any arguments")
       } else {
@@ -275,7 +272,7 @@ object Builtins {
   // One-argument macros
   val quote = HBLFinalMacro(
     "quote",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       val Seq(arg) = args
       arg match {
         case ls: HBLList => {
@@ -289,7 +286,7 @@ object Builtins {
 
   val getLocal = HBLFinalMacro(
     "get-local",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       val Seq(index: BigInt) = args
       if (context.fn == None) {
         throw TopLevelException(
@@ -311,7 +308,7 @@ object Builtins {
 
   val getPrevLine = HBLFinalMacro(
     "get-prev",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       getRelativeProgramLine(
         args match {
           case Seq(arg: BigInt) => -Utils.bigIntToInt(arg)
@@ -324,7 +321,7 @@ object Builtins {
 
   val getNextLine = HBLFinalMacro(
     "get-next",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       getRelativeProgramLine(
         args match {
           case Seq(arg: BigInt) => Utils.bigIntToInt(arg)
@@ -338,7 +335,7 @@ object Builtins {
   // Variadic macros
   val cond = HBLRewriteMacro(
     "cond",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       var Seq(testExpr: HBLAny, trueExpr: HBLAny, moreExprs*) = args
       var testVal = Interpreter.eval(testExpr)(using context)
       while (!isTruthy(testVal) && moreExprs.length > 1) {
@@ -359,21 +356,21 @@ object Builtins {
 
   val chain = HBLRewriteMacro(
     "chain",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       args.reduceRight(HBLList(_, _))
     }
   )
 
   val branch = HBLRewriteMacro(
     "branch",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       branchRestructure(args)
     }
   )
 
   val recur = HBLFinalMacro(
     "recur",
-    (args: Seq[HBLAny], context: Context) => {
+    (args, context) => {
       println("Calling recur builtin!!")
       context.fn match {
         case Some(fn: HBLList) => {
