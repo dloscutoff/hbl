@@ -79,12 +79,12 @@ object HBLList {
 
 trait HBLBuiltin
 
-case class HBLFunction(name: String, fn: Seq[HBLAny] => HBLAny) extends HBLBuiltin {
+case class HBLFunction(name: String, fn: PartialFunction[Seq[HBLAny], HBLAny]) extends HBLBuiltin {
   def apply(args: Seq[HBLAny]): HBLAny = {
-    try {
+    if (fn.isDefinedAt(args)) {
       fn(args)
-    } catch {
-      case matchError: MatchError => throw ArgumentException(
+    } else {
+      throw ArgumentException(
         s"Wrong number or type of arguments for builtin function $name: ${args.mkString(", ")}")
     }
   }
@@ -93,22 +93,22 @@ case class HBLFunction(name: String, fn: Seq[HBLAny] => HBLAny) extends HBLBuilt
 
 trait HBLMacro extends HBLBuiltin {
   val name: String
-  val mac: (Seq[HBLAny], Context) => HBLAny
+  val mac: PartialFunction[(Seq[HBLAny], Context), HBLAny]
   def apply(args: Seq[HBLAny], context: Context): HBLAny = {
-    try {
+    if (mac.isDefinedAt((args, context))) {
       mac(args, context)
-    } catch {
-      case matchError: MatchError => throw ArgumentException(
+    } else {
+      throw ArgumentException(
         s"Wrong number or type of arguments for builtin macro $name: ${args.mkString(", ")}")
     }
   }
   override def toString: String = s":$name:"
 }
 
-case class HBLRewriteMacro(name: String, mac: (Seq[HBLAny], Context) => HBLAny) extends HBLMacro
-case class HBLFinalMacro(name: String, mac: (Seq[HBLAny], Context) => HBLAny) extends HBLMacro
+case class HBLRewriteMacro(name: String, mac: PartialFunction[(Seq[HBLAny], Context), HBLAny]) extends HBLMacro
+case class HBLFinalMacro(name: String, mac: PartialFunction[(Seq[HBLAny], Context), HBLAny]) extends HBLMacro
 
-class HBLOverloadedBuiltin(getMacro: Int => HBLMacro, getFunction: Seq[HBLAny] => HBLFunction) {
+class HBLOverloadedBuiltin(getMacro: Int => HBLMacro, getFunction: PartialFunction[Seq[HBLAny], HBLFunction]) {
   // Given an Int, unapply returns a macro if this builtin has a macro overload at that arity
   def unapply(arity: Int): Option[HBLMacro] = {
     try {
@@ -117,15 +117,11 @@ class HBLOverloadedBuiltin(getMacro: Int => HBLMacro, getFunction: Seq[HBLAny] =
       case matchError: MatchError => None
     }
   }
-  // Given a Seq[HBLAny] arglist, unapply returns a function if this builtin as a function
-  // overload matching those argtypes
-  def unapply(args: Seq[HBLAny]): Option[HBLFunction] = {
-    try {
-      Some(getFunction(args))
-    } catch {
-      case matchError: MatchError => None
-    }
-  }
+  /**
+    * Given a Seq[HBLAny] arglist, unapply returns a function if this builtin as a function
+    */
+  def unapply(args: Seq[HBLAny]): Option[HBLFunction] =
+    Option.when(getFunction.isDefinedAt(args))(getFunction(args))
 }
 
 object Builtins {
