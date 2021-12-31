@@ -1,20 +1,19 @@
-/**
- * Half-Byte Lisp interpreter
- * Copyright (C) 2021 David Loscutoff <https://github.com/dloscutoff>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/** Half-Byte Lisp interpreter Copyright (C) 2021 David Loscutoff
+  * <https://github.com/dloscutoff>
+  *
+  * This program is free software: you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License as published by the Free
+  * Software Foundation, either version 3 of the License, or (at your option)
+  * any later version.
+  *
+  * This program is distributed in the hope that it will be useful, but WITHOUT
+  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+  * more details.
+  *
+  * You should have received a copy of the GNU General Public License along with
+  * this program. If not, see <http://www.gnu.org/licenses/>.
+  */
 
 package hbl
 
@@ -24,7 +23,11 @@ class NotCallableException(message: String) extends Exception(message)
 class MissingOverloadException(message: String) extends Exception(message)
 
 //case class Context(lines: Seq[HBLAny], lineNumber: Option[Int], fn: Option[HBLList], locals: Seq[HBLAny]) {
-case class Context(lineNumber: Option[Int], fn: Option[HBLList], locals: Seq[HBLAny]) {
+case class Context(
+    lineNumber: Option[Int],
+    fn: Option[HBLList],
+    locals: Seq[HBLAny]
+) {
   def withNewLocals(newLocals: Seq[HBLAny]): Context =
     Context(lineNumber, fn, newLocals)
 }
@@ -83,11 +86,11 @@ object Interpreter {
           case Translator.overloads(overloadedBuiltin) =>
             args.length match {
               case overloadedBuiltin(builtinMacro) => Some(builtinMacro)
-              case _ => None
+              case _                               => None
             }
           // Or a direct reference to a builtin macro
           case builtinMacro: HBLMacro => Some(builtinMacro)
-          case _ => None
+          case _                      => None
         }
         if (macroVal.isDefined) {
           // This is a macro call
@@ -98,16 +101,21 @@ object Interpreter {
               // of the new arguments
               context.fn match {
                 case Some(currentFunc: HBLList) => {
-                  given Context = context.withNewLocals(evalEach(args)(using context))
+                  given Context =
+                    context.withNewLocals(evalEach(args)(using context))
                   eval(currentFunc)
                 }
-                case None => throw TopLevelException("Cannot use recur at top level, only within a function")
+                case None =>
+                  throw TopLevelException(
+                    "Cannot use recur at top level, only within a function"
+                  )
               }
             }
             // A final macro just does a rewrite and returns the result
             case finalMacro: HBLFinalMacro => finalMacro(args, context)
             // A rewrite macro does a rewrite and then evaluates the result again
-            case rewriteMacro: HBLRewriteMacro => eval(rewriteMacro(args, context))
+            case rewriteMacro: HBLRewriteMacro =>
+              eval(rewriteMacro(args, context))
           }
         } else {
           // This is a function call
@@ -119,14 +127,19 @@ object Interpreter {
             // TODO: warn when trying to do this in expanded mode?
             case Translator.overloads(overloadedBuiltin) =>
               argVals match {
-                case overloadedBuiltin(builtinFunction) => builtinFunction(argVals)
-                case _ => throw MissingOverloadException(s"$headVal with args ${argVals.mkString(", ")}")
+                case overloadedBuiltin(builtinFunction) =>
+                  builtinFunction(argVals)
+                case _ =>
+                  throw MissingOverloadException(
+                    s"$headVal with args ${argVals.mkString(", ")}"
+                  )
               }
             // A direct reference to a builtin function
             case builtinFunction: HBLFunction => builtinFunction(argVals)
             // A list representing a user-defined function
             case userFunction: HBLList => {
-              given Context = Context(userFunction.lineNumber, Some(userFunction), argVals)
+              given Context =
+                Context(userFunction.lineNumber, Some(userFunction), argVals)
               eval(userFunction)
             }
             // Any other value is not a callable value
@@ -136,20 +149,23 @@ object Interpreter {
       }
       // Evaluating an empty list is a reference to the previous line
       case HBLList() => Builtins.getPrevLine(Seq(), context)
-      // All other values (integers, builtins) evaluate to themselves 
+      // All other values (integers, builtins) evaluate to themselves
       case value: HBLAny => value
     }
   }
-  
-  def evalEach(args: Seq[HBLAny])(using context: Context): Seq[HBLAny] = args.map(arg => eval(arg))
 
-  def quoteEach(args: Seq[HBLAny]): Seq[HBLAny] = args.map(arg => HBLList(Builtins.quote, arg)) 
-  
+  def evalEach(args: Seq[HBLAny])(using context: Context): Seq[HBLAny] =
+    args.map(arg => eval(arg))
+
+  def quoteEach(args: Seq[HBLAny]): Seq[HBLAny] =
+    args.map(arg => HBLList(Builtins.quote, arg))
+
   def callFunction(fn: HBLAny, argVals: Seq[HBLAny]): HBLAny = {
     fn match {
       // A list representing a user-defined function
       case userFunction: HBLList if !userFunction.isEmpty => {
-        given Context = Context(userFunction.lineNumber, Some(userFunction), argVals)
+        given Context =
+          Context(userFunction.lineNumber, Some(userFunction), argVals)
         eval(userFunction)
       }
       // A direct reference to a builtin function or a literal value

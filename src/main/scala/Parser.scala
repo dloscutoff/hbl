@@ -1,20 +1,19 @@
-/**
- * Half-Byte Lisp interpreter
- * Copyright (C) 2021 David Loscutoff <https://github.com/dloscutoff>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/** Half-Byte Lisp interpreter Copyright (C) 2021 David Loscutoff
+  * <https://github.com/dloscutoff>
+  *
+  * This program is free software: you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License as published by the Free
+  * Software Foundation, either version 3 of the License, or (at your option)
+  * any later version.
+  *
+  * This program is distributed in the hope that it will be useful, but WITHOUT
+  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+  * more details.
+  *
+  * You should have received a copy of the GNU General Public License along with
+  * this program. If not, see <http://www.gnu.org/licenses/>.
+  */
 
 package hbl
 
@@ -26,10 +25,13 @@ class UnbalancedParensException(message: String) extends Exception(message)
 case class Token(string: String)
 
 abstract class ParseNode
-case class InternalNode(children: List[ParseNode],
-                        openParen: String = "(",
-                        closeParen: String = ")") extends ParseNode {
-  override def toString: String = children.mkString(openParen + " ", " ", " " + closeParen)
+case class InternalNode(
+    children: List[ParseNode],
+    openParen: String = "(",
+    closeParen: String = ")"
+) extends ParseNode {
+  override def toString: String =
+    children.mkString(openParen + " ", " ", " " + closeParen)
 }
 case class LeafNode(atom: Token) extends ParseNode {
   override def toString: String = s"[${atom.string}]"
@@ -54,15 +56,17 @@ object Parser {
     InternalNode(parseTree.children, openParen = "'(")
   }
 
-  def parseExpanded(code:String): InternalNode = {
+  def parseExpanded(code: String): InternalNode = {
     val tokens = scanExpanded(code)
     parse(tokens, inferParens = false)
   }
 
-  def parse(tokens: Stack[Token],
-            inferParens: Boolean,
-            openParen: String = "(",
-            depth: Int = 0): InternalNode = {
+  def parse(
+      tokens: Stack[Token],
+      inferParens: Boolean,
+      openParen: String = "(",
+      depth: Int = 0
+  ): InternalNode = {
     val openParenPattern = "('*\\()".r
     val closeParenPattern = "('*\\))".r
     val children = new ArrayBuffer[ParseNode]
@@ -106,9 +110,11 @@ object Parser {
   }
 
   def fromBytes(codeBytes: Array[Byte]): String = {
-    codeBytes.flatMap(byte => {
-      val asInt = (byte.toInt + 256) % 256
-      List(codepage(asInt / 16), codepage(asInt % 16))
-    }).mkString
+    codeBytes
+      .flatMap(byte => {
+        val asInt = (byte.toInt + 256) % 256
+        List(codepage(asInt / 16), codepage(asInt % 16))
+      })
+      .mkString
   }
 }
